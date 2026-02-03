@@ -1,0 +1,21 @@
+{
+  "domain": "sandsara",
+  "name": "Sandsara",
+  "version": "1.0.0",
+  "codeowners": [],
+  "config_flow": true,
+  "documentation": "https://github.com/yourusername/sandsara-hacs",
+  "issue_tracker": "https://github.com/yourusername/sandsara-hacs/issues",
+  "iot_class": "local_push",
+  "integration_type": "device",
+  "requirements": [
+    "bleak>=0.21.0",
+    "bleak-retry-connector>=3.0.0"
+  ],
+  "dependencies": ["bluetooth"],
+  "bluetooth": [
+    {
+      "service_uuid": "fd31a2be-22e7-11eb-adc1-0242ac120002"
+    }
+  ]
+}

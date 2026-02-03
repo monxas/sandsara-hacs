@@ -1,0 +1,26 @@
+{
+  "title": "Sandsara",
+  "config": {
+    "step": {
+      "bluetooth_confirm": {
+        "title": "Confirm Sandsara Device",
+        "description": "Do you want to add {name} to Home Assistant?"
+      },
+      "user": {
+        "title": "Select Sandsara Device",
+        "description": "Select your Sandsara from the list of discovered devices.",
+        "data": {
+          "address": "Device"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "Device is already configured.",
+      "no_devices_found": "No Sandsara devices found. Make sure your Sandsara is powered on and within Bluetooth range."
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to Sandsara.",
+      "unknown": "Unexpected error."
+    }
+  }
+}
