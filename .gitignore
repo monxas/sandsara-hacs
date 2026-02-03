@@ -33,3 +33,8 @@ venv/
 
 # Research - large binary files (keep locally, don't push)
 research/hci_captures/*.curf
+research/patterns/samples/
+research/patterns/plots/
+research/patterns/music/
+research/patterns/customPatterns/
+research/patterns/import/
