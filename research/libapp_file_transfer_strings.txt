@@ -1,0 +1,929 @@
+SendPort
+_TransferableTypedDataImpl
+vm:isolate-unsendable
+_backtrackingStack
+TransferableTypedData
+_RawReceivePort
+_growBacktrackingStack
+_SendPort
+_LocalDirectory&LocalFileSystemEntity&ForwardingDirectory&DirectoryAddOnsMixin@838232594
+send firstChunk
+MyPatternsPagePushToCommunity
+jumpToPattern
+_clearTrackers@431391311
+tracker
+Error while deleting the file
+set:activeTrackOutlineColor
+Playlist sent successfully
+Path::shift
+namesPatternDialog
+onReceivedHttpAuthRequest
+Path::arcToPoint
+ClipPathEngineLayer
+_computePathSegments@01508982
+_parsePatternHelper@1108098028
+Received headers
+ForwardingFile
+initialFile
+sendCreateMessage
+savePatternInDB
+File uploaded successfully
+get:CommunityPageFailedToDownload
+IOFileSystem.
+GappedSliderTrackShape
+_NativePath@170655892
+FileServiceResponse
+transfer-encoding
+File received successfully
+get:_absolutePath@15069316
+Add more patterns into the "import" folder
+init:_receivePort@15069316
+_FileSpan@10010170702
+SELECT COUNT(*) FROM patterns
+get:SculpturePagePlaylistRandomSort
+get:CommunityPagePatternSaved
+Received LED data: 
+MyPatternsPageBelongTo
+FileNotFoundError
+_rotateFiles@1175124463
+GoogleFontsFile
+_removeOldFile@742039299
+get:_showTrack@341211710
+_RectangularSliderTrackShape&SliderTrackShape&BaseSliderTrackShape@5905160292
+_clipPath@17065589
+Send Logs
+relativePathToUri
+get:validForMouseTracker
+stopTrackingIfPointerNoLongerDown
+Window update received from remote peer would make flow control window too large.
+get:SculpturePagePatternsPlayAll
+onReceivedServerTrustAuthRequest
+_receivedPointerSignal@341211710
+Connection closed before full body was received
+get:onValueReceived
+_pushClipPath@17065589
+set:trackColor
+MyPatternsPageEmptyTip3
+Failed to list patterns: 
+Cannot extract a file path from a URI with a fragment component
+File_LengthFromPath
+_sendH2@704024360
+Cannot rename file to '
+Remove Pattern
+_useDefaultPattern@1108098028
+sendPlatformMessage
+application/vnd.airzip.filesecure.azs
+get:MyPatternsPageLoadImage
+_toFilePath@0150898
+_SendPort@1026248
+_DateFormatPatternField@1108098028
+_TapTracker@431391311.
+XFileBase
+RoundedRectSliderTrackShape
+onReceivedLoginRequest
+Could not load file at 
+_sendResizeMessage@70227590
+patternSend
+SliderTrackShape
+_mergePaths@0150898
+Add Pattern
+_sendWriteEvent@15069316
+_pushFileToStream@736157106
+RawReceivePort_setActive
+get:send
+File Size: 
+Add To Playlist
+_RandomAccessFileOps@15069316
+trackHeight
+Error receiving file: 
+, allowUniversalAccessFromFileURLs: 2
+_handleTapTrackStart@361111801
+application/vnd.ipunplugged.rcprofile
+Enter Pattern Name
+disabledInactiveTrackColor
+Error parsing playlist info: 
+get:secondaryActiveTrackColor
+Error received, data: 
+disabledSecondaryActiveTrackColor
+renamePattern
+Path::contains
+MediaTrackNext
+package:path/src/utils.dart
+uploadDB
+MyPatternsPageDelete2
+Trying to set 'Transfer-Encoding: Chunked' on HTTP 1.0 headers
+package:path_provider_android/messages.g.dart
+rcprofile
+package:path/src/style/windows.dart
+__pushClipPath$Method$FfiNative@17065589
+SlidableNotificationSender
+ImmutableBuffer::initFromFile
+SculpturePagePatternsTitle
+File Index: 2
+SourceFile
+package:file/src/interface/file_system_entity.dart
+Playlist to send: 
+File does not exist
+assets/tutorial/pattern5.jpg2
+get:MyPatternsPageEmptyTip3
+get:trackOutlineColor
+delPlaylistItem
+fileClosed
+_RandomAccessFileOpsImpl@15069316
+Error sending file
+My Patterns
+file:///
+get:MyPatternsPageLoginRequired
+MyPatternsPageLogin
+Tried to send 
+logFile
+Spiral Before Pattern
+EmptyEnvFileError
+_freezeTracker@431391311
+package:sqflite_common/src/path_utils.dart
+Failed to rename pattern
+Failed to save video path
+7. Once you're happy with your pattern, it's time to save it. Simply click on "Send to Sandsara" to make sure your creation is ready to enjoy.
+MyPatternsPageNameTooShort
+appCachePath2
+, shouldPerformDownload: 
+_saveFileAndPostUpdates@742039299
+NumberFormat._forPattern@1111441731
+get:MyPatternsPageLoginMessage
+addPattern
+set:inactiveTrackColor
+updatePicturePathByIndex
+get:MyPatternsPagePatternInfo
+canonicalPath
+Image.file
+_checkWindowsPathReservedCharacters@0150898
+get:MyPatternsPagePushingToCommunity2
+PathProviderApi
+Missing DateTime formatting patterns2
+Illegal path character 
+patternRec
+MyPatternsPageEmptyList
+updateNamesPatternByMACAndIndex
+namesPattern: 
+MyPatternsPageImport2
+Would you like to import new patterns?
+Tip: You can add patterns into the "import" folder directly on the SD card (".bin" format).
+_RectangularSliderValueIndicatorPathPainter@592236860
+package:flutter/src/gestures/velocity_tracker.dart
+_ReceivePortImpl@1026248.fromRawReceivePort
+Malformed pattern "
+MyPatternsPageSetUsername
+PathExistsException
+_MyPatternsListStateState@1213518325.
+ must be less than the number of lines in the file, 2
+MyPatternsPageAddToPlaylist
+PathNotFoundException
+Download new patterns from the Community section
+_pathsToCommonAncestor@388518307
+sendNextChunk
+onReceivedIcon
+removePattern
+_fontWeightToFilenameWeightParts@976341163
+Failed to create log file
+get:MyPatternsPageImportFinished
+path: 
+_paintTrackWith@597328938
+Hour send to device 2
+_TransferableTypedDataImpl@1026248
+_sendData@5048458
+Cannot check existence of file
+_parsePlaylistInfo@8991898752
+includeDiskFiles
+RelatedImageFileFormat
+assets/tutorial/pattern2.jpg2
+Spiral Before Custom Pattern 
+get:_localPath@971253254
+allowUniversalAccessFromFileURLs
+set:clipPath2
+set:trackWidth
+get:path
+Connection closed before data was received
+initializeDatePatterns
+package:path_provider_android/path_provider_android.dart
+_getVideoPath@21469729
+File_Close
+, tracksForCalib: 
+shouldPerformDownload
+RawReceivePort.
+_tapTrackerReset@438288344
+ 6. After selecting an effect, hit "Create" and watch as your pattern evolves into something truly special.
+_receivedPointerSignal@339019050
+_FileStreamConsumer@150693162
+get:disabledActiveTrackColor2
+_sendInternal@1026248
+disabledActiveTrackColor
+isFileUriDatabasePath
+get:MyPatternsPageCancel
+set:inactiveTrackOutlineWidth
+Invalid image file: 2
+set:inactiveTrackOutlineColor
+set:trackHeight
+SettingsPageSpiralBeforePattern
+Error writing playlist data: 
+set:trackInnerLength2
+_paintTrack@341211710
+get:_traversableTrackExtent@341211710
+Path2
+PlaylistConfig
+sendChannelUpdate
+EventHandler_SendData
+_sendReadEvent@15069316
+dart:developer-patch/profiler.dart
+_emptyPatterns@954519251
+dart:io-patch/file_patch.dart
+_FileResourceInfo@15069316.
+Send file canceled
+get:MyPatternsPagePushInProgress
+MailSend
+Response received
+putFile
+addPath
+File_Rename
+get:_leadingTrackMainAxisOffset@341211710
+getInnerPath2
+selectMusicTrack
+package:source_span/src/file.dart
+_sendError@5048458
+File_Delete
+get:MyPatternsPageLoadImageTooltip
+assets/tutorial/pattern7.jpg2
+CommunityPageFailedToDownload
+_MyPatternsListStateState@12135183252
+File closed
+SlidableAutoCloseNotificationSender
+package:file/src/backends/local/local_file_system.dart
+get:trackWidth
+Path::reset
+package:file/src/interface/directory.dart
+You can find the pattern in My Patterns section
+File_WriteFrom
+assets/tutorial/pattern4.jpg2
+onReceivedError
+ must be not be greater than the number of characters in the file, 
+File upload failed with status: 
+_trackLiveImage@472034022
+file2
+PathProviderAndroid.2
+File.fromRawPath
+_TrackTapGestureRecognizer@3412117102
+toApiFilenamePart
+package:path/src/style/url.dart
+file:drift_connection_store?mode=memory&cache=shared2
+_LocalDirectory&LocalFileSystemEntity&ForwardingDirectory@838232594
+MyPatternsPagePatternName
+trackpad
+_download@742039299
+Playlist must have at least one item2
+CFARepeatPatternDim
+MyPatterns: 2
+Patterns Before Calibration: 
+LocalFileSystemEntity
+_SlidableNotificationSender@960085889
+getApplicationDocumentsPath
+sendFile
+RenderClipPath.
+MyPatternsPageLoginMessage
+FileService
+RandomAccessFile
+Path::moveTo2
+, useOnDownloadStart: 
+Failed to send playlist: 
+Cannot close file
+sendToEngine2
+_sendData@10223892622
+updateTracksForCalib2
+MyPatternsPagePatternInfo
+FileLocation._@1001017070
+_getPath@751209502
+_checkLongPressEnd@4272325242
+FileSystemException
+get:MyPatternsPageNameTooShort
+onTapTrackStart
+Path::Create2
+assets/tracks.json
+CommunityPageSendingPattern
+receiveBroadcastStream
+Play All The Patterns
+_RawReceivePort@1026248.
+fileOpened
+This happens when a plugin sends messages to the framework side before the framework has had an opportunity to register a listener. See the ChannelBuffers API documentation for details on how to configure the channel to expect more messages, or to expect messages to get discarded:
+onReceivedTouchIconUrl
+mergeLogFiles
+Unknown Custom Pattern
+INSERT INTO patterns (key, username, userMail, patternName, imageURL, fileURL, date, tags) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+_updateFile@742039299
+dart:io/file_system_entity.dart
+get:trackHeight
+selected_video_path
+application/vnd.pawaafile
+CommunityPagePattern2
+init:tracker2
+_sendToEventHandler@150693162
+patternDatabaseID
+Path::setFillType
+XFile
+fixPath
+No valid video file selected2
+ReceivePort
+Cannot extract a non-Windows file path from a file URI with an authority
+image uploaded successfully: 
+getApplicationCachePath
+PlatformConfigurationNativeApi::SendPlatformMessage
+File from 
+Please make a screenshot of this message and send for support:
+27566b01-59c3-4a6f-a40e-c35606b0a29b2
+_clipPath@247408280
+_rebuildPath@42208322
+_trySendData@1025130049
+_saveSelectedVideoPath@1190393687
+_getScrollToTrack@341211710
+set:chunkedTransferEncoding
+uriStartingFromPath
+get:SettingsPageSpiralBeforePattern
+application/x-mscardfile
+HttpFileService
+get:MyPatternsPageSetUsername
+Received an acknowledged settings frame which did not have a outstanding settings request.
+get:MyPatternsPageRegenerateFailed
+Import Patterns
+PlaylistOPCode
+get:_trackVisibility@582083257
+init:canonicalPath
+Failed to load video path
+Malformed exponential pattern "
+Connection closed before response was received
+ForwardingFileSystemEntity
+pushClipPath2
+Never received headers
+Count patterns: 
+_scheduleMouseTrackerUpdate@379452173
+sendBin
+_Uri@0150898.file
+application/vnd.iccprofile
+get:_trackColor@582083257
+get:MyPatternsPageNotification
+OnCharacteristicReceived
+uploadFile
+connectionClosedReceived
+getFileFromCache
+_shadowPaths@482037234
+__initFromFile$Method$FfiNative@17065589
+openFiles
+class _RawReceivePortImpl
+, path = '
+SendPort_get_hashcode
+FileSource
+RawReceivePort
+set:activeTrackOutlineWidth
+pkipath
+_trySendMessages@1013359953
+application/vnd.geogebra.file
+dart:io/file_impl.dart
+Playlist parsed: 
+Error sending pattern
+_lengthFromPath@15069316
+Find your pattern in your playlist, sit back, relax, and let Sandsara bring your creation to life!
+get:_trackRect@589231897
+Failed to load or send pattern.
+dateTimePatterns
+, verticalScrollbarTrackColor: 
+package:cross_file/src/types/io.dart2
+getImageFile2
+_FileStreamConsumer@15069316.
+DownloadProgress
+parsePattern2
+MyPatternsPageLoginRequired
+didStopTrackingLastPointer
+DatabaseTracker.
+VideoPlayerController.file
+SculpturePagePlaylistTitle
+uploadFileToR2
+9. Select your pattern. Here you can name it, give your pattern a title, and even share it with the Sandsara community if you'd like! Don't forget to click on "Add to Playlist."
+Failed to parse playlist
+_makeFileUri@01508982
+Cannot delete file
+_trackTap@431391311
+allowFileAccessFromFileURLs
+package:flutter_cache_manager/src/result/download_progress.dart
+Error handling playlist notification: 
+__sendPlatformMessage@17065589
+_makePath@0150898
+_RawReceivePort@1026248
+Invalid file mode for this operation2
+dev.flutter.pigeon.path_provider_android.PathProviderApi.getTemporaryPath
+get:hasEmptyPath
+PathAccessException
+_FileResourceInfo@15069316
+buildPath
+File_Read
+_sendH1@704024360
+BaseSliderTrackShape2
+Download
+trackpadScrollToScaleFactor
+_File@15069316.
+package:file/src/forwarding/forwarding_directory.dart
+File deleted successfully
+CacheManager: Failed to download file from 
+onReceivedHttpError
+get:inactiveTrackColor
+Receiver: top-level
+package:file/src/interface/file_system.dart
+initMouseTracker
+_sendData@15069316
+importPattern
+_fileExists@901112270
+HTTP/2 clients cannot receive HEADER_FRAMEs as a connectionattempt.
+Picture path cleared successfully
+FileOutput
+Path::addRect
+handleTrackTapDown
+MyPatternsPagePushInProgress2
+file:///C:/Users/admin/Documents/sandsaraApp/sandsara/.dart_tool/flutter_build/dart_plugin_registrant.dart
+.file
+MyPatternsPageRenameSuccess
+init:_indentPattern@481109922
+playlist
+_sendDisposeMessage@702275902
+Cannot retrieve length of file
+XFile.
+NumberFormat.decimalPattern
+Path::addOval
+path2
+_loadSelectedVideoPath@1190393687
+get:CommunityPageDownload
+FileResponse2
+onDidReceiveServerRedirectForProvisionalNavigation
+ContentTypeConverter|get#fileExtension
+MyPatternsPageEmptyTip1
+_DateFormatPatternField@1108098028.
+toApiFilenamePrefix
+MethodChannelPathProvider
+FileSystemEntity
+SculpturePageMyPatternsTitle2
+Received ping ack with unknown opaque data.
+get:_trackBorderColor@582083257
+:path
+Connection closed before full header was received
+_getVideoPath@1105461797
+        relativePath text,
+, allowFileAccessFromFileURLs: 
+Sending Pattern
+Path::addRRect
+Unable to find a path to "
+init:namesPattern
+_forcePressEnded@361111801
+package:flutter_cache_manager/src/storage/file_system/file_system.dart
+LocalFile: '2
+RawReceivePort_get_id
+MouseTracker.
+get:activeTrackColor2
+VelocityTracker.withKind
+This pattern is from the community, you cannot push it to Community
+This will clear all your My Patterns data, are you sure?
+package:drift/src/sqlite3/database_tracker.dart
+_Link@15069316.fromRawPath
+Error uploading image
+Error sending file: 2
+_TapStatusTrackerMixin@438288344
+assets/tutorial/pattern1.jpg2
+createFile
+send2
+appTrackingTransparency
+getDatabasesPath
+application/x-java-jnlp-file2
+_handleTapTrackReset@361111801
+get:disabledSecondaryActiveTrackColor
+downloadFileFromR2
+------------------File sent
+  path TEXT NULL
+get:CommunityPagePattern
+PATTERN CODE2
+get:CommunityPageSendingPattern
+SourceFile.decoded
+Canvas::drawPath
+get:CommunityPageFailedToSend
+ must not be greater than the number of characters in the file, 
+startTrackingPointer2
+CommunityPagePatternSaved
+_sendCreateMessage@70227590
+TransferFunction
+Multiple exponential symbols in pattern "
+dev.flutter.pigeon.path_provider_android.PathProviderApi.getApplicationDocumentsPath2
+MyPatternsPagePushingToCommunity
+Sending chunk: 
+package:path_provider/path_provider.dart
+Device info payload too short for files array (len=
+onReceivedClientCertRequest
+package:file/src/backends/local/local_directory.dart2
+SceneBuilder::pushClipPath
+_File@15069316.fromRawPath
+LocalFileSystem
+RenderClipPath
+IOFileSystem2
+get:pathSegments
+package:path/path.dart
+_FileSpan@1001017070.
+sendFirstChunk
+Failed to read playlist
+Pattern renamed successfully2
+Cannot extract a file path from a URI with a query component2
+package:pub_semver/src/patterns.dart2
+delMyPattern2
+_sendUnstreamed@988340606
+PlatformConfigurationNativeApi::SendChannelUpdate
+application/x-msmetafile
+Loving Sandsara? Leave us a quick 5-star review on the App Store or Google Play, take a screenshot, and send it to hello@sandsara.io.
+_outerPath@4820372342
+package:flutter_cache_manager/src/web/file_service.dart
+package:video_player/src/closed_caption_file.dart
+ReceivePort.2
+package:file/src/backends/local/local_file.dart
+_normalizePath@0150898
+Sending first chunk
+MyPatternsPageRegenerateFailed
+Playlist Info
+__clipPath$Method$FfiNative@170655892
+MediaTrackPrevious
+_trySendMessage@1013359953
+File_GetPointer
+, horizontalScrollbarTrackColor: 
+_findFamilyWithVariantAssetPath@973078722
+application/vnd.anser-web-funds-transfer-initiation
+_receivePort@15069316
+package:path/src/parsed_path.dart
+package:flutter_cache_manager/src/storage/file_system/file_system_io.dart
+_isFileSecure@973078722
+MyPatternsPageNotification
+package:path/src/style.dart
+Upload pattern successfully
+get:_isFile@0150898
+LocalFile
+get:MyPatternsPageEmptyTip2
+_sendAction@821214145
+Failed to download file
+_addTransferEncoding@16463476
+get:MyPatternsPagePatternName
+RegExp_getPattern
+PathProviderPlatform2
+init:openFiles
+_checkNonWindowsPathReservedCharacters@0150898
+file uploaded successfully: 2
+secondaryActiveTrackColor
+_File@15069316
+useOnDownloadStart
+onFindResultReceived2
+MyPatternsPageCancel2
+MyPatternsPageLoadImageFirst2
+PlaylistConfig._internal@899189875
+SELECT MAX(key) AS maxKey FROM patterns
+package:path_provider_platform_interface/src/method_channel_path_provider.dart
+      "fileURL": "
+_ReceivePortImpl@1026248
+_BaseTapAndDragGestureRecognizer&OneSequenceGestureRecognizer&_TapStatusTrackerMixin@438288344
+file:
+Unexpected pointer down event for trackpad
+horizontalScrollbarTrackColor
+ParsedPath.parse
+isPathUsed
+get:MyPatternsPageImporting
+ must have scheme 'file:'.
+pathsEqual
+get:trackInnerLength2
+Sending file begin
+Pattern Info2
+relativePath2
+PathProviderPlatform.
+package:path_provider_platform_interface/path_provider_platform_interface.dart
+_uriOrPathToUri@826140773
+MyPatternsPageReceivingData
+MouseTrackerAnnotation
+Cannot send errors on sockets
+_webNonDebugFramePattern@50425567
+MyPatternsPageImportPatternsMessage
+New playlist: 
+_LocalFile&LocalFileSystemEntity&ForwardingFile@841300260
+CacheManager: Downloading 
+Expected to first receive a settings frame.
+package:flutter/src/rendering/mouse_tracker.dart
+downloadFile2
+Log file cleared
+fcbff68e-2af1-11eb-adc1-0242ac1200022
+Path: 
+_migrateOldDbPath@751209502
+File Open successfully
+fromFilePath2
+_headersEnd@164634762
+_RawReceivePort@1026248._@1026248
+eventHandlerSendData2
+Path::arcTo
+File_Exists
+_hashPattern@30990332
+_localFile@9712532542
+get:_trackRight@244348729
+get:MyPatternsPageAddToPlaylist
+package:flutter_cache_manager/src/result/file_info.dart
+get:hasEndHeadersFlag
+get:_minPreferredTrackHeight@589231897
+set:activeTrackColor2
+onDownloadStartRequest
+Unknown Pattern
+No log files found
+sendSemanticsUpdate
+ClipPathLayer
+package:path/src/path_exception.dart2
+_sendPlatformMessage@17065589
+Cannot create file
+package:file/src/forwarding/forwarding_file_system_entity.dart
+_RandomAccessFileOps@15069316._@15069316
+drift client receive2
+getApplicationSupportPath
+Create your own patterns on the Creators Tool
+get:pattern
+package:flutter_cache_manager/src/result/file_response.dart
+names_pattern
+get:hasEndDrawer
+_trackTap@438288344
+Cannot open file
+fcbffa44-2af1-11eb-adc1-0242ac1200022
+absolutePathToUri
+MyPatternsPageLoadImageConfirm
+rmAllFileindexInList2
+send nextChunk
+getFile
+CFAPattern
+ClipPath
+GPSTrackRef
+package:file/src/forwarding/forwarding_file.dart
+Send2
+get:_totalTrackMainAxisOffsets@341211710
+      "patternName": "
+FileMode
+_RandomAccessFile@15069316.
+onTapTrackReset
+_sendDone@5048458
+`path_provider_android` threw an error: 
+Cannot extract a file path from a 
+get:hasAbsolutePath
+FileImage
+getTemporaryPath
+MyPatternsPageCommunityPattern
+_loadPatterns@1210211281
+_getEntriesFromFile@932375506
+File sent
+trackShape
+_addRRectToPath@247408280
+get:MyPatternsPageRenameSuccess
+clearPatterns
+Path::addArc2
+Windows paths with drive letter must be absolute
+File.
+isInMemoryDatabasePath
+get:_widgetTrackColor@597328938
+TextInputAction.send2
+, allowFileAccess: 
+clipPathAndPaint
+get:MyPatternsPageDate
+File: '
+stopTrackingPointer
+CommunityPageFailedToSend
+SendPort_sendInternal_
+Pattern
+Playlist Configuration Updated:
+_NativePath@17065589.
+You need to login to push patterns to the community.2
+_isInExcludePaths@11211583272
+Directory.fromRawPath
+ParsedPath
+_SlidableAutoCloseBarrierNotificationSenderState@960085889
+dev.flutter.pigeon.path_provider_android.PathProviderApi.getApplicationCachePath
+PathProviderAndroid
+_sendFontChangeMessage@17065589
+dev.flutter.pigeon.path_provider_android.PathProviderApi.getApplicationSupportPath
+file://
+removeCachedFile
+inactiveTrackColor
+defaultPatterns/Sandsara-trackNumber-
+TransferRange
+Path::lineTo2
+Existing Files (first 10): 
+package:file/src/common.dart2
+get:MyPatternsPageDelete
+get:MyPatternsPageLogin
+MyPatternsPageImporting
+_saveFile@742039299
+PathException
+application/vnd.airzip.filesecure.azf
+MyPatternsPageDate
+CanonicalPath
+getOuterPath2
+FileLocation2
+Link.fromRawPath
+downloads
+get:MyPatternsPageImportPatterns
+FileSystemException._fromOSError@15069316
+assets/tutorial/pattern6.jpg2
+File_Open
+Failed to send logs
+get:_trackExtent@341211710
+Failed to send log file
+MediaAudioTrack
+If troubleshooting doesn't solve the problem, please file an issue at https://github.com/flutter/flutter/issues/new/choose.
+Unexpected "0" in pattern "
+Empty playlist, nothing to send
+velocityTrackerBuilder
+_initFromFile@17065589
+allowFileAccess
+MouseTracker2
+importPatterns
+get:MyPatternsPageLoadImageConfirm
+_Directory@15069316.fromRawPath
+_TapTracker@431391311
+InterColorProfile
+genFilePath
+FileInfo
+FileSystem
+_MouseTrackerUpdateDetails@3914373802
+_SlidableNotificationSenderState@960085889
+CVAPattern
+Error processing pattern
+Path::addPath
+https://pattern.sandsara.io/2
+Playlist
+childFile
+getClipPath
+SELECT * FROM patterns ORDER BY key DESC LIMIT 
+get:MyPatternsPageImportPatternsMessage
+handleThumbPressEnd
+_send@822270833
+sendSemanticsEvent
+trackerForCalib
+_readPlaylist@899189875
+application/vnd.sailingtracker.track2
+get:isEndDrawerOpen
+package:path/src/context.dart
+NextUserProfile
+assets/tutorial/pattern3.jpg2
+_gapBorderPath@552401927
+SendPort_get_id
+CacheManager: Failed to load cached file for 
+get:MyPatternsPageLoadImageFirst
+pathFromUri
+MyPatternsPageLoadImageTooltip
+___sendPlatformMessage$Method$FfiNative@17065589
+_appendPattern@1108098028
+activeTrackColor
+set:trackBorderColor2
+FileSpan
+dart:developer/profiler.dart2
+Double-check whether the map was used in a place that documents support for WidgetStateProperty objects. If so, please file a bug report. (The https://pub.dev/ page for a package contains a link to "View/report issues".)2
+verticalScrollbarTrackColor
+init:_webNonDebugFramePattern@50425567
+Pattern Name: 
+MyPatternsPageEmptyTip2
+GPSTrack
+saveFontToDeviceFileSystem
+package:google_fonts/src/file_io_desktop_and_mobile.dart
+sendDone
+Multiple decimal separators in pattern "
+toFilePath
+_ReceivePortImpl@1026248.
+sendError
+, appCachePath: 
+get:MyPatternsPageReceivingData
+Path is still in use by other entries
+init:dateTimePatterns
+Tracker for Calibration
+get:MyPatternsPageEmptyList
+_normalizeRelativePath@0150898
+MyPatternsPageImportPatterns2
+Failed to send file
+get:mouseTracker
+Sended
+_sendViewFocusEvent@170655892
+package:path/src/internal_style.dart2
+Importing patterns...
+init:_fontWeightToFilenameWeightParts@976341163
+HttpFileService.
+Download File 
+reorderPlaylist
+sendPlaylist2
+Path::close
+_indentPattern@48110992
+Pattern: 
+get:MyPatternsPageCommunityPattern
+_addPath@17065589
+onForcePressEnd
+File download failed with status: 
+init:path
+8. Check out your pattern in the "My Patterns" section under the "Pattern Library" tab. All your custom designs are stored here.
+MyPatternsListState
+getTrackToScroll
+File sent successfully
+get:fileExtension
+application/x-msdownload
+sendMotionEvent
+get:_trackInnerLength@597328938
+CommunityPageDownload
+__drawPath$Method$FfiNative@170655892
+DOWNLOAD
+Failed to get playlist characteristic
+package:sandsara/screens/menu_my_patterns.dart
+get:MyPatternsPagePushToCommunity
+wrapFile
+_RandomAccessFile@15069316
+get:MyPatternsPageBelongTo
+_writeFileStart@1219101164
+pattern selected: 
+_receivedPointerSignal@296066802
+250e79ac-f0d7-43cc-ad6a-63544b5c66632
+_computeTrackPaintOffset@597328938
+File_Create
+_sendHeaders@1022389262
+_makeWindowsFileUrl@0150898
+_isTrackEvent@341211710
+package:flutter/src/services/mouse_tracking.dart
+assets/patterns/-.png
+fileURL
+handleLogFileSending2
+File_Length
+VelocityTracker
+init:pathSegments
+RelatedSoundFile
+package:aws_signature_v4/src/request/canonical_request/canonical_path.dart
+dart:core/pattern.dart
+Canvas::clipPath
+video/vnd.dvb.file
+_SlidableNotificationSenderState@968415045
+package:file/src/interface/file.dart2
+package:path/src/style/posix.dart
+Pattern matching error
+SlidableAutoCloseBarrierNotificationSender
+_removeCachedFile@901112270
+SculpturePagePlaylistRandomSort
+Illegal character in path: 
+package:file/src/backends/local/local_file_system_entity.dart
+_sendChannelUpdate@17065589
+ to send...
+get:trackColor
+getFileStream
+dart:io/file.dart
+Save Pattern2
+PathException: 
+Failed to merge log files
+Pattern 
+_handleLongPressEnd@361111801
+plugins.flutter.io/path_provider
+DatabaseTracker
+OldSubfileType
+_toWindowsFilePath@0150898
+_drawPath@17065589
+Failed to count patterns: 
+MyPatternsPageImportFinished2
+MethodChannelPathProvider.
+Windows paths with \\?\ prefix must be absolute
+SculpturePagePatternsPlayAll2
+CommunityPagePatternInfo
+sendDisposeMessage
+_DropSliderValueIndicatorPathPainter@590516029
+File2
+_downloadOrAddToQueue@742039299
+Delete pattern: 
+LongPressEndDetails
+Tracks for Calibration: 
+File_SetPointer
+Illegal character in path
+Path::addRSuperellipse
+Patterns
+loadFontFromDeviceFileSystem2
+get:CommunityPagePatternInfo2
+get:MyPatternsPageEmptyTip1
+removeFile
+Would you like to get the cover image for this pattern?
+get:disabledInactiveTrackColor
+sendEvent
+package:cross_file/src/types/base.dart
+Device config and playlist config initialized
+Failed to upload pattern: 
+PlaylistOPCode.
+getDatabasesPath is null
+namesPattern2
+clipPath
+patternName
+__addPath$Method$FfiNative@17065589
+Path::quadraticBezierTo
+drawPath
+pathSegments2
+get:MyPatternsPageImport
+Receiver: 
+RawReceivePort_factory
+RawReceivePort_closeInternal2
+File_ReadInto
+MyPatternsPageLoadImage
+SourceFile.fromString
+application/pkix-pkipath
+SubfileType
