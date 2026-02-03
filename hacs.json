@@ -1,5 +1,10 @@
 {
   "name": "Sandsara",
+  "domain": "sandsara",
+  "content_in_root": false,
   "homeassistant": "2024.1.0",
-  "render_readme": true
+  "render_readme": true,
+  "iot_class": "Local Push",
+  "zip_release": false,
+  "filename": "sandsara.zip"
 }

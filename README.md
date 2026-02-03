@@ -21,10 +21,24 @@ A custom Home Assistant integration for controlling **Sandsara Mini Pro** kineti
 
 ### HACS (Recommended)
 
-1. Add this repository as a custom repository in HACS
-2. Search for "Sandsara" and install
-3. Restart Home Assistant
-4. Go to Settings → Devices & Services → Add Integration → Sandsara
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
+
+1. **Install HACS** if you haven't already: [HACS Installation Guide](https://hacs.xyz/docs/setup/prerequisites)
+2. **Add Custom Repository**:
+   - Go to HACS → Integrations
+   - Click the three dots menu (⋮) → Custom repositories
+   - Add repository URL: `https://github.com/monxas/sandsara-hacs`
+   - Category: Integration
+   - Click ADD
+3. **Install Integration**:
+   - Search for "Sandsara" in HACS
+   - Click DOWNLOAD
+4. **Restart Home Assistant**
+5. **Add Integration**:
+   - Go to Settings → Devices & Services
+   - Click "+ ADD INTEGRATION" 
+   - Search for "Sandsara"
+   - Follow the configuration wizard
 
 ### Manual Installation
 
