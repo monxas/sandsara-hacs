@@ -38,3 +38,10 @@ research/patterns/plots/
 research/patterns/music/
 research/patterns/customPatterns/
 research/patterns/import/
+
+# Generated/test patterns (created via API, not needed in repo)
+research/patterns/generated-*.bin
+research/patterns/testing-*.bin
+
+# Downloaded patterns from device (too many, keep locally)
+research/patterns/Sandsara-trackNumber-*.bin

@@ -86,6 +86,64 @@ The Mini Pro requires colors to be sent as gradients, even for solid colors. The
 
 See [docs/PROTOCOL_NOTES.md](docs/PROTOCOL_NOTES.md) for the complete reverse-engineered BLE protocol specification.
 
+## Pattern File Format
+
+Sandsara uses a unique "binary CSV" format for pattern files (`.bin`). Each point is 6 bytes:
+
+| Offset | Size | Description |
+|--------|------|-------------|
+| 0 | 2 | X coordinate (int16, little-endian) |
+| 2 | 1 | Comma separator (0x2C) |
+| 3 | 2 | Y coordinate (int16, little-endian) |
+| 5 | 1 | Newline (0x0A) |
+
+Coordinates range from -32768 to +32767, representing positions on a unit circle.
+
+### Python Parser Example
+
+```python
+import struct
+
+def parse_sandsara_pattern(filepath):
+    """Parse a Sandsara .bin pattern file into (x, y) tuples."""
+    with open(filepath, 'rb') as f:
+        data = f.read()
+    
+    points = []
+    for i in range(0, len(data), 6):
+        if i + 6 > len(data):
+            break
+        # X (int16 LE) + ',' + Y (int16 LE) + '\n'
+        x = struct.unpack('<h', data[i:i+2])[0]
+        y = struct.unpack('<h', data[i+3:i+5])[0]
+        # Normalize to -1.0 to 1.0
+        points.append((x / 32767.0, y / 32767.0))
+    
+    return points
+```
+
+## Web Pattern Viewer
+
+The `web/` directory contains a web-based pattern viewer built with FastAPI.
+
+### Running the Viewer
+
+```bash
+cd web
+pip install fastapi uvicorn
+python app.py
+# Open http://localhost:8095
+```
+
+### API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/patterns` | List all available pattern files |
+| GET | `/api/patterns/{name}` | Get parsed points for a pattern |
+| POST | `/api/patterns/upload` | Upload a new .bin pattern |
+| POST | `/api/patterns/generate/{type}` | Generate test pattern (circle, spiral, flower, star) |
+
 ## Development Tools
 
 The `tools/` directory contains Python scripts for direct device communication:

@@ -27,12 +27,14 @@
 
 ### Service: File Transfer (`fd31abc4-22e7-11eb-adc1-0242ac120002`)
 
+**See [FILE_TRANSFER_PROTOCOL.md](FILE_TRANSFER_PROTOCOL.md) for detailed protocol documentation.**
+
 | Characteristic | UUID | Properties | Description |
 |---|---|---|---|
-| File send flag | `fcbff68e-...` | write, notify | File transfer flag |
-| File unknown | `27566b01-...` | write, notify | Unknown |
-| File send data | `fcbffa44-...` | write, notify | File data transfer |
-| File status | `250e79ac-...` | write, notify, read | File transfer status |
+| File Flag | `fcbff68e-2af1-11eb-adc1-0242ac120002` | write, notify | Start/end file transfer |
+| File Unknown | `27566b01-59c3-4a6f-a40e-c35606b0a29b` | write, notify | Unknown (maybe progress?) |
+| File Data | `fcbffa44-2af1-11eb-adc1-0242ac120002` | write, notify | File chunk data |
+| File Status | `250e79ac-f0d7-43cc-ad6a-63544b5c6663` | write, notify, read | Transfer status |
 
 ---
 
