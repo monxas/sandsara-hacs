@@ -108,7 +108,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     raise RuntimeError("No Sandsara device configured")
                 coord = coordinators[0]
 
-            await coord.async_upload_pattern(file_path)
+            _LOGGER.warning("Sandsara: upload_pattern service called with file_path=%s", file_path)
+            try:
+                result = await coord.async_upload_pattern(file_path)
+                _LOGGER.warning("Sandsara: upload_pattern completed, result=%s", result)
+            except Exception as err:
+                _LOGGER.error("Sandsara: upload_pattern FAILED: %s", err, exc_info=True)
+                raise
 
         hass.services.async_register(
             DOMAIN,

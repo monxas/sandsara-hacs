@@ -641,119 +641,205 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
         if total_chunks > 255:
             raise ValueError(f"File too large: {total_chunks} chunks (max 255)")
 
-        _LOGGER.info(
-            "Sandsara: uploading '%s' (%d bytes, %d chunks of %d)",
+        _LOGGER.warning(
+            "Sandsara UPLOAD: starting '%s' (%d bytes, %d chunks of %d)",
             file_path, file_size, total_chunks, FILE_CHUNK_SIZE,
         )
 
         # Synchronization primitives for File Flag notifications
         _flag_event = asyncio.Event()
         _flag_data = bytearray()
+        _notify_count = 0
 
         @callback
         def _file_flag_handler(sender: int, data: bytearray) -> None:
-            nonlocal _flag_data
-            _LOGGER.debug("Sandsara: File Flag notify: %s", data.hex())
+            nonlocal _flag_data, _notify_count
+            _notify_count += 1
+            _LOGGER.warning(
+                "Sandsara UPLOAD: File Flag notify #%d: %s (hex) sender=%s",
+                _notify_count, data.hex() if data else "empty", sender,
+            )
             _flag_data = data
             _flag_event.set()
 
         assigned_name = ""
 
-        try:
-            # Negotiate MTU for large chunks (app uses 512→255)
+        # ── Stop ALL other notifications to avoid BLE contention ──
+        stopped_notifs = []
+        for char_uuid, name in [
+            (CHAR_DATETIME, "DATETIME"),
+            (CHAR_PLAYBACK, "PLAYBACK"),
+            (CHAR_COMMAND, "COMMAND"),
+        ]:
             try:
-                if hasattr(self._client, '_backend') and hasattr(self._client._backend, 'exchange_mtu'):
-                    await self._client._backend.exchange_mtu(512)
-                    _LOGGER.debug("Sandsara: MTU exchange requested")
-                elif hasattr(self._client, 'mtu_size'):
-                    _LOGGER.debug("Sandsara: current MTU = %d", self._client.mtu_size)
-            except Exception as mtu_err:
-                _LOGGER.debug("Sandsara: MTU negotiation skipped: %s", mtu_err)
+                await self._client.stop_notify(char_uuid)
+                stopped_notifs.append((char_uuid, name))
+                _LOGGER.warning("Sandsara UPLOAD: stopped %s notifications", name)
+            except Exception as e:
+                _LOGGER.debug("Sandsara UPLOAD: %s notify stop skipped: %s", name, e)
 
-            # Step 1: Clear event BEFORE enabling notifications to catch immediate 0x00
+        await asyncio.sleep(0.5)  # Let BLE stack settle
+
+        try:
+            # Log MTU
+            mtu = getattr(self._client, 'mtu_size', None)
+            _LOGGER.warning("Sandsara UPLOAD: current MTU = %s", mtu)
+
+            # Step 1: Enable notifications on FILE_FLAG
             _flag_event.clear()
+            _LOGGER.warning("Sandsara UPLOAD: enabling FILE_FLAG notifications...")
             await self._client.start_notify(CHAR_FILE_FLAG, _file_flag_handler)
+            _LOGGER.warning("Sandsara UPLOAD: FILE_FLAG notifications enabled")
 
             # Step 2: Wait for 0x00 = "ready"
+            _LOGGER.warning("Sandsara UPLOAD: waiting for 0x00 ready signal...")
             try:
                 await asyncio.wait_for(_flag_event.wait(), timeout=5.0)
+                _LOGGER.warning(
+                    "Sandsara UPLOAD: got signal: %s",
+                    _flag_data.hex() if _flag_data else "empty",
+                )
             except asyncio.TimeoutError:
-                _LOGGER.warning("Sandsara: no ready signal on File Flag (continuing)")
+                _LOGGER.warning("Sandsara UPLOAD: no ready signal (timeout 5s), continuing anyway")
+
             if _flag_data and _flag_data[0] == 0x00:
-                _LOGGER.debug("Sandsara: device ready for file transfer")
+                _LOGGER.warning("Sandsara UPLOAD: device ready (0x00 received)")
+            else:
+                _LOGGER.warning(
+                    "Sandsara UPLOAD: ready signal was: %s (expected 0x00)",
+                    _flag_data.hex() if _flag_data else "none",
+                )
 
             # Step 3: Write chunk count to File Flag
             _flag_event.clear()
-            await self._client.write_gatt_char(
-                CHAR_FILE_FLAG, bytes([0x6F]), response=True
+            _LOGGER.warning(
+                "Sandsara UPLOAD: writing chunk count %d (0x%02X) to FILE_FLAG...",
+                total_chunks, total_chunks,
             )
+            await self._client.write_gatt_char(
+                CHAR_FILE_FLAG, bytes([total_chunks]), response=True,
+            )
+            _LOGGER.warning("Sandsara UPLOAD: chunk count written OK")
 
             # Step 4: Wait for 0x01 + ASCII filename
+            _LOGGER.warning("Sandsara UPLOAD: waiting for filename ack (0x01+name)...")
             try:
-                await asyncio.wait_for(_flag_event.wait(), timeout=10.0)
+                await asyncio.wait_for(_flag_event.wait(), timeout=15.0)
             except asyncio.TimeoutError:
-                raise RuntimeError("Sandsara: no ack after sending chunk count")
+                _LOGGER.error(
+                    "Sandsara UPLOAD: TIMEOUT waiting for filename ack! "
+                    "flag_data=%s notify_count=%d",
+                    _flag_data.hex() if _flag_data else "empty", _notify_count,
+                )
+                raise RuntimeError("Sandsara: no ack after sending chunk count (15s timeout)")
+
+            _LOGGER.warning(
+                "Sandsara UPLOAD: got ack: %s",
+                _flag_data.hex() if _flag_data else "empty",
+            )
+
             if _flag_data and _flag_data[0] == 0x01 and len(_flag_data) > 1:
                 assigned_name = _flag_data[1:].decode("ascii", errors="replace")
-                _LOGGER.info("Sandsara: device assigned filename: '%s'", assigned_name)
+                _LOGGER.warning("Sandsara UPLOAD: device assigned filename: '%s'", assigned_name)
             else:
                 _LOGGER.warning(
-                    "Sandsara: unexpected ack: %s", _flag_data.hex() if _flag_data else "empty"
+                    "Sandsara UPLOAD: unexpected ack format: %s",
+                    _flag_data.hex() if _flag_data else "empty",
                 )
 
             # Step 5: Send chunks — wait for 0x02 ack on File Flag per chunk
             file_data = await self.hass.async_add_executor_job(
                 lambda: open(file_path, "rb").read()
             )
-            for chunk_num in range(total_chunks):
-                    chunk = file_data[chunk_num * FILE_CHUNK_SIZE:(chunk_num + 1) * FILE_CHUNK_SIZE]
-                    if not chunk:
-                        break
-                    _flag_event.clear()
-                    await self._client.write_gatt_char(
-                        CHAR_FILE_DATA, chunk, response=True
-                    )
-                    # Wait for 0x02 chunk ack on File Flag
-                    try:
-                        await asyncio.wait_for(_flag_event.wait(), timeout=10.0)
-                    except asyncio.TimeoutError:
-                        raise RuntimeError(
-                            f"Sandsara: no chunk ack for chunk {chunk_num}/{total_chunks}"
-                        )
-                    if not _flag_data or _flag_data[0] != 0x02:
-                        _LOGGER.warning(
-                            "Sandsara: unexpected chunk ack: %s (expected 0x02)",
-                            _flag_data.hex() if _flag_data else "empty",
-                        )
-                    if (chunk_num + 1) % 20 == 0:
-                        _LOGGER.debug(
-                            "Sandsara: uploaded %d/%d chunks", chunk_num + 1, total_chunks
-                        )
 
-            # Step 6: Signal transfer complete — write 0x01 to File Flag
-            await self._client.write_gatt_char(
-                CHAR_FILE_FLAG, bytes([0x01]), response=True
-            )
             _LOGGER.info(
-                "Sandsara: upload complete! Device filename: '%s' (%d chunks)",
+                "Sandsara UPLOAD: sending %d chunks (size=%d, MTU=%s)...",
+                total_chunks, FILE_CHUNK_SIZE, mtu,
+            )
+
+            for chunk_num in range(total_chunks):
+                chunk = file_data[chunk_num * FILE_CHUNK_SIZE:(chunk_num + 1) * FILE_CHUNK_SIZE]
+                if not chunk:
+                    break
+                _flag_event.clear()
+                try:
+                    await self._client.write_gatt_char(
+                        CHAR_FILE_DATA, chunk, response=True,
+                    )
+                except Exception as write_err:
+                    _LOGGER.error(
+                        "Sandsara UPLOAD: chunk %d/%d write FAILED: %s",
+                        chunk_num, total_chunks, write_err,
+                    )
+                    raise
+
+                # Wait for 0x02 chunk ack
+                try:
+                    await asyncio.wait_for(_flag_event.wait(), timeout=10.0)
+                except asyncio.TimeoutError:
+                    _LOGGER.error(
+                        "Sandsara UPLOAD: TIMEOUT waiting for chunk %d/%d ack",
+                        chunk_num, total_chunks,
+                    )
+                    raise RuntimeError(
+                        f"Sandsara: no chunk ack for chunk {chunk_num}/{total_chunks}"
+                    )
+                if not _flag_data or _flag_data[0] != 0x02:
+                    _LOGGER.warning(
+                        "Sandsara UPLOAD: chunk %d ack unexpected: %s (expected 0x02)",
+                        chunk_num, _flag_data.hex() if _flag_data else "empty",
+                    )
+                if (chunk_num + 1) % 10 == 0 or chunk_num == 0:
+                    _LOGGER.warning(
+                        "Sandsara UPLOAD: progress %d/%d chunks sent",
+                        chunk_num + 1, total_chunks,
+                    )
+
+            # Step 6: Signal transfer complete
+            _LOGGER.warning("Sandsara UPLOAD: writing 0x01 (transfer complete) to FILE_FLAG...")
+            await self._client.write_gatt_char(
+                CHAR_FILE_FLAG, bytes([0x01]), response=True,
+            )
+            _LOGGER.warning(
+                "Sandsara UPLOAD: ✅ COMPLETE! Device filename: '%s' (%d chunks)",
                 assigned_name, total_chunks,
             )
 
             # Refresh file existence array
             try:
                 await self._client.write_gatt_char(
-                    CHAR_DATETIME, bytes([0x00]), response=True
+                    CHAR_DATETIME, bytes([0x00]), response=True,
                 )
                 await asyncio.sleep(0.5)
             except Exception as err:
-                _LOGGER.debug("Sandsara: failed to refresh file array: %s", err)
+                _LOGGER.debug("Sandsara UPLOAD: failed to refresh file array: %s", err)
+
+        except Exception as upload_err:
+            _LOGGER.error("Sandsara UPLOAD: ❌ FAILED: %s", upload_err, exc_info=True)
+            raise
 
         finally:
-            # Step 7: Disable notifications
+            # Disable file flag notifications
             try:
                 await self._client.stop_notify(CHAR_FILE_FLAG)
+                _LOGGER.warning("Sandsara UPLOAD: FILE_FLAG notifications stopped")
             except Exception:
                 pass
+
+            # Re-enable other notifications
+            for char_uuid, name in stopped_notifs:
+                handler_map = {
+                    CHAR_DATETIME: self._datetime_notification_handler,
+                    CHAR_PLAYBACK: self._playback_notification_handler,
+                    CHAR_COMMAND: self._command_notification_handler,
+                }
+                handler = handler_map.get(char_uuid)
+                if handler:
+                    try:
+                        await self._client.start_notify(char_uuid, handler)
+                        _LOGGER.warning("Sandsara UPLOAD: re-enabled %s notifications", name)
+                    except Exception as e:
+                        _LOGGER.warning("Sandsara UPLOAD: failed to re-enable %s: %s", name, e)
 
         return assigned_name
 
