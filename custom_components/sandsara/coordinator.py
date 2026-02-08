@@ -117,6 +117,7 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
         self._client: BleakClientWithServiceCache | None = None
         self._connect_lock = asyncio.Lock()
         self._initialized = False
+        self._manual_disconnect = False
         self.device_data = SandsaraData()
         # File transfer synchronization
         self._file_status_event = asyncio.Event()
@@ -142,6 +143,8 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
 
     async def _ensure_connected(self) -> None:
         """Ensure connection to device."""
+        if getattr(self, '_manual_disconnect', False):
+            return
         if self._client and self._client.is_connected:
             return
 
@@ -440,6 +443,27 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
         _LOGGER.debug("Sandsara: file data ack: %s", text)
         self._file_data_ack_value = text
         self._file_data_ack_event.set()
+
+    async def async_disconnect(self) -> None:
+        """Manually disconnect from device."""
+        self._manual_disconnect = True
+        if self._client and self._client.is_connected:
+            _LOGGER.info("Sandsara: manual disconnect requested")
+            await self._client.disconnect()
+        self.device_data.connected = False
+        self._initialized = False
+        self._client = None
+        self.async_set_updated_data(self.device_data)
+
+    async def async_reconnect(self) -> None:
+        """Manually reconnect to device."""
+        self._manual_disconnect = False
+        _LOGGER.info("Sandsara: manual reconnect requested")
+        self._client = None
+        self._initialized = False
+        await self._ensure_connected()
+        self.device_data.connected = True
+        self.async_set_updated_data(self.device_data)
 
     @callback
     def _disconnected(self, client: BleakClientWithServiceCache) -> None:

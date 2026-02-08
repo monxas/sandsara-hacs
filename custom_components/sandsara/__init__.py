@@ -18,6 +18,7 @@ from .coordinator import SandsaraCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [
+    Platform.BUTTON,
     Platform.LIGHT,
     Platform.MEDIA_PLAYER,
     Platform.NUMBER,
