@@ -675,7 +675,7 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
             # Step 3: Write chunk count to File Flag
             _flag_event.clear()
             await self._client.write_gatt_char(
-                CHAR_FILE_FLAG, bytes([total_chunks]), response=True
+                CHAR_FILE_FLAG, bytes([0x6F]), response=True
             )
 
             # Step 4: Wait for 0x01 + ASCII filename

@@ -10,7 +10,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, get_pattern_name
+from .const import DOMAIN, PATTERN_NAMES, get_pattern_name
 from .coordinator import SandsaraCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -55,22 +55,18 @@ class SandsaraPatternSelect(CoordinatorEntity[SandsaraCoordinator], SelectEntity
 
     @property
     def options(self) -> list[str]:
-        """Return list of available patterns from current playlist."""
-        playlist = self.coordinator.device_data.playlist
-        if not playlist:
-            # Fallback: show all available files
-            available = self.coordinator.device_data.available_files
-            if available:
-                return [
-                    f"{get_pattern_name(i)} ({i})"
-                    for i, exists in sorted(available.items())
-                    if exists
-                ]
-            return ["No patterns available"]
-        return [
+        """Return list of all known patterns (0-99) plus any extras on device."""
+        # Always show all 100 known patterns
+        all_options = [
             f"{get_pattern_name(i)} ({i})"
-            for i in playlist
+            for i in sorted(PATTERN_NAMES.keys())
         ]
+        # Add any extra tracks from device playlist (>99, e.g. uploaded custom patterns)
+        playlist = self.coordinator.device_data.playlist or []
+        for i in playlist:
+            if i not in PATTERN_NAMES:
+                all_options.append(f"{get_pattern_name(i)} ({i})")
+        return all_options
 
     @property
     def current_option(self) -> str | None:

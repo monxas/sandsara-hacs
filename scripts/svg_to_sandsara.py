@@ -9,7 +9,7 @@ import re
 from pathlib import Path
 
 def write_point(x, y):
-    """Write point in Sandsara binary CSV format."""
+    """Write point in Sandsara binary CSV format: X (int16 LE) + ',' + Y (int16 LE) + '\\n'."""
     x_int = max(-32768, min(32767, int(x)))
     y_int = max(-32768, min(32767, int(y)))
     return struct.pack('<h', x_int) + b',' + struct.pack('<h', y_int) + b'\n'

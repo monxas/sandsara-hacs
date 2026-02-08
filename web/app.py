@@ -85,7 +85,17 @@ async def list_patterns() -> List[Dict[str, Any]]:
     if not PATTERNS_DIR.exists():
         return patterns
     
-    for file_path in sorted(PATTERNS_DIR.glob("*.bin")):
+    # Sort with real-oviedo first, then originals, then others
+    def sort_key(p):
+        name = p.name.lower()
+        if 'real-oviedo' in name:
+            return (0, name)
+        elif name.startswith('sandsara-tracknumber'):
+            return (1, name)
+        else:
+            return (2, name)
+    
+    for file_path in sorted(PATTERNS_DIR.glob("*.bin"), key=sort_key):
         stat = file_path.stat()
         num_points = stat.st_size // 6
         patterns.append({

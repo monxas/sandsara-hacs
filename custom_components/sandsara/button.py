@@ -37,7 +37,7 @@ class SandsaraDisconnectButton(ButtonEntity):
     def __init__(self, coordinator: SandsaraCoordinator, entry: ConfigEntry) -> None:
         self.coordinator = coordinator
         self._attr_unique_id = f"{entry.entry_id}_disconnect"
-        self._attr_device_info = coordinator.device_info
+        self._attr_device_info = coordinator.device_data
 
     async def async_press(self) -> None:
         """Disconnect from device."""
@@ -54,7 +54,7 @@ class SandsaraConnectButton(ButtonEntity):
     def __init__(self, coordinator: SandsaraCoordinator, entry: ConfigEntry) -> None:
         self.coordinator = coordinator
         self._attr_unique_id = f"{entry.entry_id}_connect"
-        self._attr_device_info = coordinator.device_info
+        self._attr_device_info = coordinator.device_data
 
     async def async_press(self) -> None:
         """Reconnect to device."""
