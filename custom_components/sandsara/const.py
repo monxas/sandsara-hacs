@@ -39,6 +39,7 @@ PB_PREV = 0x05
 PB_NEXT = 0x06
 PB_PLAY = 0x07
 PB_PAUSE = 0x08
+PB_ADD_TO_PLAYLIST = 0x0B
 PB_SHUFFLE = 0x0D
 
 # Playback notification sub-commands

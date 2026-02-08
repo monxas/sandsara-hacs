@@ -25,6 +25,7 @@ async def async_setup_entry(
     coordinator: SandsaraCoordinator = hass.data[DOMAIN][entry.entry_id]
     # Load playlists before creating entities
     await coordinator.async_load_playlists()
+    await coordinator._load_custom_names()
     async_add_entities([
         SandsaraPatternSelect(coordinator, entry),
         SandsaraPlaylistSelect(coordinator, entry),
@@ -55,17 +56,26 @@ class SandsaraPatternSelect(CoordinatorEntity[SandsaraCoordinator], SelectEntity
 
     @property
     def options(self) -> list[str]:
-        """Return list of all known patterns (0-99) plus any extras on device."""
-        # Always show all 100 known patterns
-        all_options = [
-            f"{get_pattern_name(i)} ({i})"
-            for i in sorted(PATTERN_NAMES.keys())
-        ]
-        # Add any extra tracks from device playlist (>99, e.g. uploaded custom patterns)
+        """Return list of all known patterns (0-99) plus device + custom tracks."""
+        seen = set()
+        all_options = []
+        # All 100 known patterns
+        for i in sorted(PATTERN_NAMES.keys()):
+            all_options.append(f"{get_pattern_name(i)} ({i})")
+            seen.add(i)
+        # Extra tracks from device playlist (>99)
         playlist = self.coordinator.device_data.playlist or []
         for i in playlist:
-            if i not in PATTERN_NAMES:
+            if i not in seen:
                 all_options.append(f"{get_pattern_name(i)} ({i})")
+                seen.add(i)
+        # Custom named tracks (from uploads)
+        custom_names = getattr(self.coordinator, 'custom_names', {}) or {}
+        for track_id_str, name in custom_names.items():
+            track_id = int(track_id_str) if isinstance(track_id_str, str) else track_id_str
+            if track_id not in seen:
+                all_options.append(f"{name} ({track_id})")
+                seen.add(track_id)
         return all_options
 
     @property

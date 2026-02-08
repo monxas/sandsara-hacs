@@ -46,6 +46,7 @@ from .const import (
     DT_INIT_NAME_START,
     FILE_CHUNK_SIZE,
     FILE_TRANSFER_START_CMD,
+    PB_ADD_TO_PLAYLIST,
     PB_INIT,
     PB_NEXT,
     PB_NOTIFY_ACK,
@@ -543,9 +544,51 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
         self.device_data.is_playing = False
         self.async_set_updated_data(self.device_data)
 
+    async def async_add_track_to_device_playlist(self, track_id: int) -> None:
+        """Add a track to the device's active playlist via BLE command 0x0B.
+
+        This is the critical step the official app performs after uploading a
+        pattern.  Without it the track exists on flash but is not in the
+        playback rotation, so selecting it fails (device briefly switches
+        then reverts).
+
+        Protocol (from HCI capture):
+          Write to PLAYBACK: 0x0B + ASCII track_id  (e.g. 0x0B "303")
+        """
+        _LOGGER.info(
+            "Sandsara: adding track %d to device playlist (cmd 0x0B)", track_id,
+        )
+        payload = bytes([PB_ADD_TO_PLAYLIST]) + str(track_id).encode("ascii")
+        await self._write_playback(payload)
+        await asyncio.sleep(0.3)
+
+        # Refresh the playlist from the device
+        if self._client:
+            try:
+                playlist_bytes = await self._client.read_gatt_char(CHAR_PLAYBACK)
+                playlist_str = playlist_bytes.decode("ascii", errors="replace").strip()
+                _LOGGER.debug("Sandsara: refreshed playlist = %s", playlist_str)
+                self._parse_playlist(playlist_str)
+                self.async_set_updated_data(self.device_data)
+            except Exception as err:
+                _LOGGER.debug("Sandsara: failed to refresh playlist: %s", err)
+
     async def async_select_track(self, track_index: int) -> None:
-        """Select a specific track by file index."""
+        """Select a specific track by file index.
+
+        If the track is not in the device playlist, add it first.
+        """
         _LOGGER.info("Sandsara: select track %d (%s)", track_index, get_pattern_name(track_index))
+
+        # If track is not in the device playlist, add it first
+        playlist = self.device_data.playlist or []
+        if track_index not in playlist and track_index >= 100:
+            _LOGGER.info(
+                "Sandsara: track %d not in device playlist %s, adding first",
+                track_index, playlist,
+            )
+            await self.async_add_track_to_device_playlist(track_index)
+
         payload = bytes([PB_SELECT]) + str(track_index).encode("ascii")
         await self._write_playback(payload)
         self.device_data.current_track_index = track_index
@@ -891,6 +934,27 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
                         "assigned_name '%s' is not numeric", assigned_name,
                     )
 
+            # ── Step 7b: Add track to device playlist (critical missing step!) ──
+            # The official app sends 0x0B + track_id to PLAYBACK after upload.
+            # Without this, the track exists on flash but isn't in the active
+            # playlist, so selecting it fails.
+            if assigned_name:
+                try:
+                    track_id = int(assigned_name)
+                    _LOGGER.warning(
+                        "Sandsara UPLOAD: [7/7] Adding track %d to device playlist...",
+                        track_id,
+                    )
+                    await self.async_add_track_to_device_playlist(track_id)
+                    _LOGGER.warning(
+                        "Sandsara UPLOAD: [7/7] ✓ Track %d added to device playlist",
+                        track_id,
+                    )
+                except (ValueError, Exception) as err:
+                    _LOGGER.warning(
+                        "Sandsara UPLOAD: [7/7] Failed to add to device playlist: %s", err,
+                    )
+
             # Refresh file existence array
             try:
                 await self._client.write_gatt_char(
@@ -1087,6 +1151,11 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
             "playlists": self._playlists,
             "active": self.device_data.active_playlist_name,
         })
+
+    @property
+    def custom_names(self) -> dict[str, str]:
+        """Return custom track names."""
+        return self._custom_names
 
     @property
     def playlists(self) -> dict[str, list[int]]:
