@@ -1,7 +1,7 @@
 {
   "domain": "sandsara",
   "name": "Sandsara",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "codeowners": [],
   "config_flow": true,
   "documentation": "https://github.com/monxas/sandsara-hacs",
@@ -12,7 +12,9 @@
     "bleak>=0.21.0",
     "bleak-retry-connector>=3.0.0"
   ],
-  "dependencies": ["bluetooth"],
+  "dependencies": [
+    "bluetooth"
+  ],
   "bluetooth": [
     {
       "service_uuid": "fd31a2be-22e7-11eb-adc1-0242ac120002"

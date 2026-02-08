@@ -27,7 +27,6 @@ from .const import (
     CHAR_DATETIME,
     CHAR_FILE_DATA,
     CHAR_FILE_FLAG,
-    CHAR_FILE_STATUS,
     CHAR_FILE_UNKNOWN,
     CHAR_MODEL,
     CHAR_PLAYBACK,
@@ -119,11 +118,7 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
         self._initialized = False
         self._manual_disconnect = False
         self.device_data = SandsaraData()
-        # File transfer synchronization
-        self._file_status_event = asyncio.Event()
-        self._file_status_value: str = ""
-        self._file_data_ack_event = asyncio.Event()
-        self._file_data_ack_value: str = ""
+        # File transfer (unused legacy vars removed — flow control is local now)
         # Playlist storage
         self._playlist_store = Store(hass, 1, "sandsara_playlists")
         self._playlists: dict[str, list[int]] = {}
@@ -428,22 +423,6 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
                 data[1], data[2], data[5], data[6] == 1,
             )
 
-    @callback
-    def _file_status_notification_handler(self, sender: int, data: bytearray) -> None:
-        """Handle File Status notifications during file transfer."""
-        text = data.decode("ascii", errors="replace").strip()
-        _LOGGER.debug("Sandsara: file status notification: %s", text)
-        self._file_status_value = text
-        self._file_status_event.set()
-
-    @callback
-    def _file_data_ack_handler(self, sender: int, data: bytearray) -> None:
-        """Handle File Data notifications (chunk acks) during file transfer."""
-        text = data.decode("ascii", errors="replace").strip()
-        _LOGGER.debug("Sandsara: file data ack: %s", text)
-        self._file_data_ack_value = text
-        self._file_data_ack_event.set()
-
     async def async_disconnect(self) -> None:
         """Manually disconnect from device."""
         self._manual_disconnect = True
@@ -634,14 +613,22 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
         self.device_data.led_on = True
         self.async_set_updated_data(self.device_data)
 
-    async def async_upload_pattern(self, file_path: str) -> None:
+    async def async_upload_pattern(self, file_path: str) -> str:
         """Upload a pattern file to the Sandsara via BLE file transfer.
 
-        Protocol:
-        1. Write filename to File Flag → wait for "ok" on File Status
-        2. Write 512-byte chunks to File Data → wait for "1" ack each
-        3. Write any byte to File Flag → wait for "done" on File Status
+        Real protocol (from HCI analysis):
+        1. Enable notifications on File Flag CCCD
+        2. Wait for notification 0x00 on File Flag = "ready"
+        3. Write chunk count (single byte) to File Flag
+        4. Wait for notification 0x01 + ASCII filename on File Flag = "ack"
+        5. For each 244-byte chunk: write to File Data, wait for 0x02 on File Flag
+        6. Write 0x01 to File Flag = "transfer complete"
+        7. Disable notifications
+
+        Returns the device-assigned filename (e.g. "303").
         """
+        import math
+
         await self._ensure_connected()
         if not self._client:
             raise RuntimeError("Not connected to Sandsara")
@@ -649,162 +636,181 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
         if not os.path.isfile(file_path):
             raise FileNotFoundError(f"Pattern file not found: {file_path}")
 
-        filename = os.path.basename(file_path)
         file_size = os.path.getsize(file_path)
-        _LOGGER.info("Sandsara: uploading pattern '%s' (%d bytes)", filename, file_size)
+        total_chunks = math.ceil(file_size / FILE_CHUNK_SIZE)
+        if total_chunks > 255:
+            raise ValueError(f"File too large: {total_chunks} chunks (max 255)")
 
-        # Step 0: File service handshake (File Unknown: write 0x01 → expect 0xFE)
-        _LOGGER.info("Sandsara: file service handshake...")
-        _file_unknown_event = asyncio.Event()
-        _file_unknown_value = bytearray()
+        _LOGGER.info(
+            "Sandsara: uploading '%s' (%d bytes, %d chunks of %d)",
+            file_path, file_size, total_chunks, FILE_CHUNK_SIZE,
+        )
 
-        @callback
-        def _file_unknown_handler(sender: int, data: bytearray) -> None:
-            nonlocal _file_unknown_value
-            _LOGGER.debug("Sandsara: file unknown notify: %s", data.hex())
-            _file_unknown_value = data
-            _file_unknown_event.set()
-
-        try:
-            await self._client.start_notify(CHAR_FILE_UNKNOWN, _file_unknown_handler)
-            await asyncio.sleep(0.3)  # Wait for initial 0xFF ack
-            _file_unknown_event.clear()
-            await self._client.write_gatt_char(
-                CHAR_FILE_UNKNOWN, bytes([0x01]), response=True
-            )
-            try:
-                await asyncio.wait_for(_file_unknown_event.wait(), timeout=5.0)
-                _LOGGER.info("Sandsara: file service handshake response: %s", _file_unknown_value.hex())
-            except asyncio.TimeoutError:
-                _LOGGER.warning("Sandsara: file service handshake timeout (continuing anyway)")
-            await self._client.stop_notify(CHAR_FILE_UNKNOWN)
-        except Exception as err:
-            _LOGGER.warning("Sandsara: file service handshake failed: %s (continuing)", err)
-
-        # Enable notifications on File Status (for "ok" and "done")
-        try:
-            await self._client.start_notify(
-                CHAR_FILE_STATUS, self._file_status_notification_handler
-            )
-        except Exception as err:
-            _LOGGER.warning("Sandsara: failed to enable File Status notify: %s", err)
-            raise
-
-        # Enable notifications on File Data (for chunk acks "1")
-        try:
-            await self._client.start_notify(
-                CHAR_FILE_DATA, self._file_data_ack_handler
-            )
-        except Exception as err:
-            _LOGGER.warning("Sandsara: failed to enable File Data notify: %s", err)
-            await self._client.stop_notify(CHAR_FILE_STATUS)
-            raise
-
-        # Enable notifications on File Flag too (might receive responses here)
-        _file_flag_event = asyncio.Event()
-        _file_flag_value = ""
+        # Synchronization primitives for File Flag notifications
+        _flag_event = asyncio.Event()
+        _flag_data = bytearray()
 
         @callback
         def _file_flag_handler(sender: int, data: bytearray) -> None:
-            nonlocal _file_flag_value
-            text = data.decode("ascii", errors="replace").strip()
-            _LOGGER.info("Sandsara: file FLAG notify: %s (hex: %s)", text, data.hex())
-            _file_flag_value = text
-            _file_flag_event.set()
-            # Also set the status event in case "ok"/"done" comes here
-            self._file_status_value = text
-            self._file_status_event.set()
+            nonlocal _flag_data
+            _LOGGER.debug("Sandsara: File Flag notify: %s", data.hex())
+            _flag_data = data
+            _flag_event.set()
+
+        assigned_name = ""
 
         try:
+            # Step 1: Enable notifications on File Flag
             await self._client.start_notify(CHAR_FILE_FLAG, _file_flag_handler)
-        except Exception as err:
-            _LOGGER.debug("Sandsara: could not enable File Flag notify: %s", err)
 
-        try:
-            # Step 1: Write filename to File Flag
-            self._file_status_event.clear()
+            # Step 2: Wait for 0x00 = "ready"
+            _flag_event.clear()
+            try:
+                await asyncio.wait_for(_flag_event.wait(), timeout=5.0)
+            except asyncio.TimeoutError:
+                _LOGGER.warning("Sandsara: no ready signal on File Flag (continuing)")
+            if _flag_data and _flag_data[0] == 0x00:
+                _LOGGER.debug("Sandsara: device ready for file transfer")
+
+            # Step 3: Write chunk count to File Flag
+            _flag_event.clear()
             await self._client.write_gatt_char(
-                CHAR_FILE_FLAG, filename.encode("ascii"), response=True
+                CHAR_FILE_FLAG, bytes([total_chunks]), response=True
             )
-            # Wait for "ok" response on File Status
-            if not await self._wait_file_status("ok", timeout=10.0):
-                raise RuntimeError("Sandsara: no 'ok' response after sending filename")
 
-            # Step 2: Send file data in 512-byte chunks
+            # Step 4: Wait for 0x01 + ASCII filename
+            try:
+                await asyncio.wait_for(_flag_event.wait(), timeout=10.0)
+            except asyncio.TimeoutError:
+                raise RuntimeError("Sandsara: no ack after sending chunk count")
+            if _flag_data and _flag_data[0] == 0x01 and len(_flag_data) > 1:
+                assigned_name = _flag_data[1:].decode("ascii", errors="replace")
+                _LOGGER.info("Sandsara: device assigned filename: '%s'", assigned_name)
+            else:
+                _LOGGER.warning(
+                    "Sandsara: unexpected ack: %s", _flag_data.hex() if _flag_data else "empty"
+                )
+
+            # Step 5: Send chunks — 244 bytes each, wait for 0x02 ack on File Flag
             with open(file_path, "rb") as f:
-                chunk_num = 0
-                while True:
+                for chunk_num in range(total_chunks):
                     chunk = f.read(FILE_CHUNK_SIZE)
                     if not chunk:
                         break
-                    self._file_data_ack_event.clear()
+                    _flag_event.clear()
                     await self._client.write_gatt_char(
                         CHAR_FILE_DATA, chunk, response=True
                     )
-                    # Wait for "1" ack on File Data notification
-                    if not await self._wait_file_data_ack("1", timeout=10.0):
+                    # Wait for 0x02 chunk ack on File Flag
+                    try:
+                        await asyncio.wait_for(_flag_event.wait(), timeout=10.0)
+                    except asyncio.TimeoutError:
                         raise RuntimeError(
-                            f"Sandsara: no ack for chunk {chunk_num}"
+                            f"Sandsara: no chunk ack for chunk {chunk_num}/{total_chunks}"
                         )
-                    chunk_num += 1
-                    if chunk_num % 50 == 0:
+                    if not _flag_data or _flag_data[0] != 0x02:
+                        _LOGGER.warning(
+                            "Sandsara: unexpected chunk ack: %s (expected 0x02)",
+                            _flag_data.hex() if _flag_data else "empty",
+                        )
+                    if (chunk_num + 1) % 20 == 0:
                         _LOGGER.debug(
-                            "Sandsara: uploaded %d chunks (%d bytes)",
-                            chunk_num, chunk_num * FILE_CHUNK_SIZE,
+                            "Sandsara: uploaded %d/%d chunks", chunk_num + 1, total_chunks
                         )
 
-            # Step 3: Signal transfer complete
-            self._file_status_event.clear()
+            # Step 6: Signal transfer complete — write 0x01 to File Flag
             await self._client.write_gatt_char(
-                CHAR_FILE_FLAG, bytes([0x00]), response=True
+                CHAR_FILE_FLAG, bytes([0x01]), response=True
             )
-            if not await self._wait_file_status("done", timeout=30.0):
-                raise RuntimeError("Sandsara: no 'done' response after transfer")
-
             _LOGGER.info(
-                "Sandsara: pattern '%s' uploaded successfully (%d chunks)",
-                filename, chunk_num,
+                "Sandsara: upload complete! Device filename: '%s' (%d chunks)",
+                assigned_name, total_chunks,
             )
 
-            # Re-read file existence array after upload
+            # Refresh file existence array
             try:
                 await self._client.write_gatt_char(
                     CHAR_DATETIME, bytes([0x00]), response=True
                 )
                 await asyncio.sleep(0.5)
             except Exception as err:
-                _LOGGER.debug("Sandsara: failed to refresh file array after upload: %s", err)
+                _LOGGER.debug("Sandsara: failed to refresh file array: %s", err)
+
         finally:
-            # Disable notifications
-            for char in (CHAR_FILE_STATUS, CHAR_FILE_DATA, CHAR_FILE_FLAG):
-                try:
-                    await self._client.stop_notify(char)
-                except Exception:
-                    pass
+            # Step 7: Disable notifications
+            try:
+                await self._client.stop_notify(CHAR_FILE_FLAG)
+            except Exception:
+                pass
 
-    async def _wait_file_status(self, expected: str, timeout: float = 10.0) -> bool:
-        """Wait for a specific file status notification."""
-        try:
-            await asyncio.wait_for(self._file_status_event.wait(), timeout=timeout)
-            return self._file_status_value == expected
-        except asyncio.TimeoutError:
-            _LOGGER.warning(
-                "Sandsara: timeout waiting for file status '%s' (got '%s')",
-                expected, self._file_status_value,
-            )
-            return False
+        return assigned_name
 
-    async def _wait_file_data_ack(self, expected: str, timeout: float = 10.0) -> bool:
-        """Wait for a specific file data ack notification."""
+    async def async_list_device_files(self) -> list[str]:
+        """List files on the Sandsara device via File Unknown characteristic.
+
+        Protocol:
+        1. Enable notifications on File Unknown CCCD
+        2. Wait for 0xFF = "ready"
+        3. Write 0x01 = "list files"
+        4. Collect notifications: 0x01 + ASCII name(s) until 0xFE = "end"
+        5. Disable notifications
+
+        Returns list of file name strings (e.g. ["302", "303"]).
+        """
+        await self._ensure_connected()
+        if not self._client:
+            raise RuntimeError("Not connected to Sandsara")
+
+        _event = asyncio.Event()
+        _data = bytearray()
+        _files: list[str] = []
+        _done = asyncio.Event()
+
+        @callback
+        def _handler(sender: int, data: bytearray) -> None:
+            nonlocal _data
+            _LOGGER.debug("Sandsara: File Unknown notify: %s", data.hex())
+            _data = data
+            if data and data[0] == 0xFF:
+                _event.set()  # ready
+            elif data and data[0] == 0x01 and len(data) > 1:
+                # File entry: 0x01 + ASCII names (dash-separated)
+                names_str = data[1:].decode("ascii", errors="replace")
+                for name in names_str.split("-"):
+                    name = name.strip()
+                    if name:
+                        _files.append(name)
+            elif data and data[0] == 0xFE:
+                _done.set()  # end of list
+
         try:
-            await asyncio.wait_for(self._file_data_ack_event.wait(), timeout=timeout)
-            return self._file_data_ack_value == expected
-        except asyncio.TimeoutError:
-            _LOGGER.warning(
-                "Sandsara: timeout waiting for file data ack '%s' (got '%s')",
-                expected, self._file_data_ack_value,
+            await self._client.start_notify(CHAR_FILE_UNKNOWN, _handler)
+
+            # Wait for 0xFF ready
+            try:
+                await asyncio.wait_for(_event.wait(), timeout=5.0)
+            except asyncio.TimeoutError:
+                _LOGGER.warning("Sandsara: no ready signal on File Unknown")
+
+            # Write 0x01 = list files
+            await self._client.write_gatt_char(
+                CHAR_FILE_UNKNOWN, bytes([0x01]), response=True
             )
-            return False
+
+            # Wait for end marker 0xFE
+            try:
+                await asyncio.wait_for(_done.wait(), timeout=10.0)
+            except asyncio.TimeoutError:
+                _LOGGER.warning("Sandsara: timeout waiting for file list end")
+
+            _LOGGER.info("Sandsara: device files: %s", _files)
+        finally:
+            try:
+                await self._client.stop_notify(CHAR_FILE_UNKNOWN)
+            except Exception:
+                pass
+
+        return _files
 
     def _parse_settings(self, settings_str: str) -> None:
         """Parse CHAR_SETTINGS CSV: speed,pause_seconds,spiral_enabled,reserved."""
