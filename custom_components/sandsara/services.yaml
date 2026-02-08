@@ -1,17 +1,26 @@
 upload_pattern:
   name: Upload Pattern
-  description: Upload a .bin pattern file to the Sandsara device via BLE.
+  description: >-
+    Upload a .bin pattern file to the Sandsara device via BLE.
+    The file must exist on the Home Assistant server filesystem.
+    Recommended location: /config/sandsara/ (create the directory first).
+    You can upload files to this path via the File Editor add-on, SSH,
+    or Samba share.
   fields:
     file_path:
       name: File Path
-      description: Full path to the .bin pattern file to upload.
+      description: >-
+        Full path to the .bin pattern file on the Home Assistant server.
+        Example: /config/sandsara/my_pattern.bin
       required: true
       example: "/config/sandsara/my_pattern.bin"
       selector:
         text:
     entry_id:
       name: Entry ID
-      description: Config entry ID of the Sandsara device (optional, uses first device if omitted).
+      description: >-
+        Config entry ID of the Sandsara device. Optional — uses first
+        device if omitted.
       required: false
       selector:
         text:

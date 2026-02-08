@@ -22,5 +22,44 @@
       "cannot_connect": "Failed to connect to Sandsara.",
       "unknown": "Unexpected error."
     }
+  },
+  "services": {
+    "upload_pattern": {
+      "name": "Upload Pattern",
+      "description": "Upload a .bin pattern file to the Sandsara device via BLE. The file must exist on the HA server filesystem.",
+      "fields": {
+        "file_path": {
+          "name": "File Path",
+          "description": "Full path to the .bin pattern file on the Home Assistant server."
+        },
+        "entry_id": {
+          "name": "Entry ID",
+          "description": "Config entry ID of the Sandsara device (optional)."
+        }
+      }
+    }
+  },
+  "entity": {
+    "select": {
+      "pattern": {
+        "name": "Pattern"
+      }
+    },
+    "sensor": {
+      "current_track": {
+        "name": "Current track"
+      },
+      "progress": {
+        "name": "Track progress"
+      },
+      "playlist": {
+        "name": "Playlist"
+      }
+    },
+    "switch": {
+      "shuffle": {
+        "name": "Shuffle"
+      }
+    }
   }
 }

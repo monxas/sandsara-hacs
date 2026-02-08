@@ -112,6 +112,8 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
         # File transfer synchronization
         self._file_status_event = asyncio.Event()
         self._file_status_value: str = ""
+        self._file_data_ack_event = asyncio.Event()
+        self._file_data_ack_value: str = ""
 
     async def _async_update_data(self) -> SandsaraData:
         """Poll device state."""
@@ -418,6 +420,14 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
         self._file_status_event.set()
 
     @callback
+    def _file_data_ack_handler(self, sender: int, data: bytearray) -> None:
+        """Handle File Data notifications (chunk acks) during file transfer."""
+        text = data.decode("ascii", errors="replace").strip()
+        _LOGGER.debug("Sandsara: file data ack: %s", text)
+        self._file_data_ack_value = text
+        self._file_data_ack_event.set()
+
+    @callback
     def _disconnected(self, client: BleakClientWithServiceCache) -> None:
         """Handle disconnection."""
         _LOGGER.warning("Sandsara disconnected")
@@ -605,7 +615,7 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
         file_size = os.path.getsize(file_path)
         _LOGGER.info("Sandsara: uploading pattern '%s' (%d bytes)", filename, file_size)
 
-        # Enable notifications on File Status
+        # Enable notifications on File Status (for "ok" and "done")
         try:
             await self._client.start_notify(
                 CHAR_FILE_STATUS, self._file_status_notification_handler
@@ -614,13 +624,23 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
             _LOGGER.warning("Sandsara: failed to enable File Status notify: %s", err)
             raise
 
+        # Enable notifications on File Data (for chunk acks "1")
+        try:
+            await self._client.start_notify(
+                CHAR_FILE_DATA, self._file_data_ack_handler
+            )
+        except Exception as err:
+            _LOGGER.warning("Sandsara: failed to enable File Data notify: %s", err)
+            await self._client.stop_notify(CHAR_FILE_STATUS)
+            raise
+
         try:
             # Step 1: Write filename to File Flag
             self._file_status_event.clear()
             await self._client.write_gatt_char(
                 CHAR_FILE_FLAG, filename.encode("ascii"), response=True
             )
-            # Wait for "ok" response
+            # Wait for "ok" response on File Status
             if not await self._wait_file_status("ok", timeout=10.0):
                 raise RuntimeError("Sandsara: no 'ok' response after sending filename")
 
@@ -631,12 +651,12 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
                     chunk = f.read(FILE_CHUNK_SIZE)
                     if not chunk:
                         break
-                    self._file_status_event.clear()
+                    self._file_data_ack_event.clear()
                     await self._client.write_gatt_char(
                         CHAR_FILE_DATA, chunk, response=True
                     )
-                    # Wait for "1" ack
-                    if not await self._wait_file_status("1", timeout=10.0):
+                    # Wait for "1" ack on File Data notification
+                    if not await self._wait_file_data_ack("1", timeout=10.0):
                         raise RuntimeError(
                             f"Sandsara: no ack for chunk {chunk_num}"
                         )
@@ -659,16 +679,25 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
                 "Sandsara: pattern '%s' uploaded successfully (%d chunks)",
                 filename, chunk_num,
             )
-        finally:
-            # Disable file status notifications
+
+            # Re-read file existence array after upload
             try:
-                await self._client.stop_notify(CHAR_FILE_STATUS)
-            except Exception:
-                pass
+                await self._client.write_gatt_char(
+                    CHAR_DATETIME, bytes([0x00]), response=True
+                )
+                await asyncio.sleep(0.5)
+            except Exception as err:
+                _LOGGER.debug("Sandsara: failed to refresh file array after upload: %s", err)
+        finally:
+            # Disable notifications
+            for char in (CHAR_FILE_STATUS, CHAR_FILE_DATA):
+                try:
+                    await self._client.stop_notify(char)
+                except Exception:
+                    pass
 
     async def _wait_file_status(self, expected: str, timeout: float = 10.0) -> bool:
         """Wait for a specific file status notification."""
-        self._file_status_event.clear()
         try:
             await asyncio.wait_for(self._file_status_event.wait(), timeout=timeout)
             return self._file_status_value == expected
@@ -676,6 +705,18 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
             _LOGGER.warning(
                 "Sandsara: timeout waiting for file status '%s' (got '%s')",
                 expected, self._file_status_value,
+            )
+            return False
+
+    async def _wait_file_data_ack(self, expected: str, timeout: float = 10.0) -> bool:
+        """Wait for a specific file data ack notification."""
+        try:
+            await asyncio.wait_for(self._file_data_ack_event.wait(), timeout=timeout)
+            return self._file_data_ack_value == expected
+        except asyncio.TimeoutError:
+            _LOGGER.warning(
+                "Sandsara: timeout waiting for file data ack '%s' (got '%s')",
+                expected, self._file_data_ack_value,
             )
             return False
 
