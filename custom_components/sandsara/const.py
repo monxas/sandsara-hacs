@@ -68,7 +68,18 @@ DT_INIT_FILE_ARRAY_END = 163  # 101 bytes (indices 0-100)
 # Pattern names by file index.
 # Only include names that are verified from the Sandsara app.
 # Unknown patterns use the fallback format "Track NNN".
-PATTERN_NAMES: dict[int, str] = {}
+# NOTE: Index-to-name mapping is approximate. The app displays patterns
+# alphabetically but track indices on the device may differ.
+# These 6 names were extracted from app screenshots (2026-02-08).
+# Full list requires scrolling through all ~100 patterns in the app.
+PATTERN_NAMES: dict[int, str] = {
+    0: "Alfenique",
+    1: "Ancient Geometry",
+    2: "Art of Tiles",
+    3: "Atwood Quote",
+    4: "Beyond Infinity",
+    5: "Birth of a Poem",
+}
 
 
 def get_pattern_name(index: int) -> str:
