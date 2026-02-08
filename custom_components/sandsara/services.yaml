@@ -2,25 +2,126 @@ upload_pattern:
   name: Upload Pattern
   description: >-
     Upload a .bin pattern file to the Sandsara device via BLE.
-    The file must exist on the Home Assistant server filesystem.
-    Recommended location: /config/sandsara/ (create the directory first).
-    You can upload files to this path via the File Editor add-on, SSH,
-    or Samba share.
   fields:
     file_path:
       name: File Path
-      description: >-
-        Full path to the .bin pattern file on the Home Assistant server.
-        Example: /config/sandsara/my_pattern.bin
+      description: Full path to the .bin pattern file on the HA server.
       required: true
       example: "/config/sandsara/my_pattern.bin"
       selector:
         text:
     entry_id:
       name: Entry ID
-      description: >-
-        Config entry ID of the Sandsara device. Optional — uses first
-        device if omitted.
+      description: Config entry ID of the Sandsara device (optional).
+      required: false
+      selector:
+        text:
+
+create_playlist:
+  name: Create Playlist
+  description: Create a new named playlist with a list of track indices.
+  fields:
+    name:
+      name: Playlist Name
+      description: Name for the playlist.
+      required: true
+      example: "Favorites"
+      selector:
+        text:
+    tracks:
+      name: Track Indices
+      description: List of pattern track indices (0-99).
+      required: true
+      example: "[0, 5, 10, 33]"
+      selector:
+        object:
+    entry_id:
+      name: Entry ID
+      description: Config entry ID (optional).
+      required: false
+      selector:
+        text:
+
+delete_playlist:
+  name: Delete Playlist
+  description: Delete a saved playlist by name.
+  fields:
+    name:
+      name: Playlist Name
+      description: Name of the playlist to delete.
+      required: true
+      selector:
+        text:
+    entry_id:
+      name: Entry ID
+      description: Config entry ID (optional).
+      required: false
+      selector:
+        text:
+
+play_playlist:
+  name: Play Playlist
+  description: Activate a saved playlist on the Sandsara device and start playing.
+  fields:
+    name:
+      name: Playlist Name
+      description: Name of the playlist to play.
+      required: true
+      selector:
+        text:
+    entry_id:
+      name: Entry ID
+      description: Config entry ID (optional).
+      required: false
+      selector:
+        text:
+
+add_to_playlist:
+  name: Add to Playlist
+  description: Add a pattern to an existing playlist.
+  fields:
+    name:
+      name: Playlist Name
+      description: Name of the playlist.
+      required: true
+      selector:
+        text:
+    track_index:
+      name: Track Index
+      description: Pattern index to add (0-99).
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 99
+    entry_id:
+      name: Entry ID
+      description: Config entry ID (optional).
+      required: false
+      selector:
+        text:
+
+remove_from_playlist:
+  name: Remove from Playlist
+  description: Remove a pattern from a playlist.
+  fields:
+    name:
+      name: Playlist Name
+      description: Name of the playlist.
+      required: true
+      selector:
+        text:
+    track_index:
+      name: Track Index
+      description: Pattern index to remove (0-99).
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 99
+    entry_id:
+      name: Entry ID
+      description: Config entry ID (optional).
       required: false
       selector:
         text:

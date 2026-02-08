@@ -24,7 +24,10 @@ async def async_setup_entry(
 ) -> None:
     """Set up Sandsara switch entities."""
     coordinator: SandsaraCoordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities([SandsaraShuffleSwitch(coordinator, entry)])
+    async_add_entities([
+        SandsaraShuffleSwitch(coordinator, entry),
+        SandsaraSpiralSwitch(coordinator, entry),
+    ])
 
 
 class SandsaraShuffleSwitch(CoordinatorEntity[SandsaraCoordinator], SwitchEntity):
@@ -57,3 +60,35 @@ class SandsaraShuffleSwitch(CoordinatorEntity[SandsaraCoordinator], SwitchEntity
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         await self.coordinator.async_set_shuffle(False)
+
+
+class SandsaraSpiralSwitch(CoordinatorEntity[SandsaraCoordinator], SwitchEntity):
+    """Switch to toggle spiral before pattern."""
+
+    _attr_has_entity_name = True
+    _attr_name = "Spiral before pattern"
+    _attr_icon = "mdi:spiral"
+
+    def __init__(
+        self, coordinator: SandsaraCoordinator, entry: ConfigEntry
+    ) -> None:
+        """Initialize."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{entry.unique_id}_spiral_before_pattern"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, entry.unique_id or entry.entry_id)},
+        )
+
+    @property
+    def available(self) -> bool:
+        return self.coordinator.device_data.connected
+
+    @property
+    def is_on(self) -> bool:
+        return self.coordinator.device_data.spiral_before_pattern
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self.coordinator.async_set_spiral_before_pattern(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self.coordinator.async_set_spiral_before_pattern(False)

@@ -20,6 +20,8 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
+from homeassistant.helpers.storage import Store
+
 from .const import (
     CHAR_COMMAND,
     CHAR_DATETIME,
@@ -88,6 +90,12 @@ class SandsaraData:
         self.shuffle: bool = False
         # File existence array (index -> exists)
         self.available_files: dict[int, bool] = {}
+        # Settings from CHAR_SETTINGS CSV
+        self.pause_between_patterns: int = 0  # seconds
+        self.spiral_before_pattern: bool = True
+        self._settings_raw: list[str] = []  # preserve all CSV fields
+        # Playlist manager
+        self.active_playlist_name: str | None = None
 
 
 class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
@@ -114,6 +122,10 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
         self._file_status_value: str = ""
         self._file_data_ack_event = asyncio.Event()
         self._file_data_ack_value: str = ""
+        # Playlist storage
+        self._playlist_store = Store(hass, 1, "sandsara_playlists")
+        self._playlists: dict[str, list[int]] = {}
+        self._playlists_loaded = False
 
     async def _async_update_data(self) -> SandsaraData:
         """Poll device state."""
@@ -213,6 +225,7 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
             settings_bytes = await client.read_gatt_char(CHAR_SETTINGS)
             settings_str = settings_bytes.decode("ascii", errors="replace").strip()
             _LOGGER.debug("Sandsara: settings = %s", settings_str)
+            self._parse_settings(settings_str)
         except Exception as err:
             _LOGGER.debug("Sandsara: failed to read settings: %s", err)
 
@@ -719,6 +732,150 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
                 expected, self._file_data_ack_value,
             )
             return False
+
+    def _parse_settings(self, settings_str: str) -> None:
+        """Parse CHAR_SETTINGS CSV: speed,pause_seconds,spiral_enabled,reserved."""
+        if not settings_str:
+            return
+        parts = settings_str.split(",")
+        self.device_data._settings_raw = parts
+        if len(parts) >= 2:
+            try:
+                self.device_data.pause_between_patterns = int(parts[1])
+            except ValueError:
+                pass
+        if len(parts) >= 3:
+            try:
+                self.device_data.spiral_before_pattern = parts[2] == "1"
+            except (ValueError, IndexError):
+                pass
+
+    async def async_write_settings(self) -> None:
+        """Write the current settings back to CHAR_SETTINGS as CSV."""
+        await self._ensure_connected()
+        if not self._client:
+            return
+        parts = list(self.device_data._settings_raw) if self.device_data._settings_raw else ["100", "0", "1", "0000000000000"]
+        # Ensure minimum length
+        while len(parts) < 4:
+            parts.append("0")
+        parts[1] = str(self.device_data.pause_between_patterns)
+        parts[2] = "1" if self.device_data.spiral_before_pattern else "0"
+        csv_str = ",".join(parts)
+        _LOGGER.info("Sandsara: writing settings: %s", csv_str)
+        char = self._resolve_char(CHAR_SETTINGS)
+        if char:
+            await self._client.write_gatt_char(char, csv_str.encode("ascii"), response=True)
+        else:
+            _LOGGER.error("Sandsara: CHAR_SETTINGS not found")
+
+    async def async_set_pause_between_patterns(self, seconds: int) -> None:
+        """Set pause between patterns in seconds."""
+        self.device_data.pause_between_patterns = seconds
+        await self.async_write_settings()
+        self.async_set_updated_data(self.device_data)
+
+    async def async_set_spiral_before_pattern(self, enabled: bool) -> None:
+        """Set spiral before pattern on/off."""
+        self.device_data.spiral_before_pattern = enabled
+        await self.async_write_settings()
+        self.async_set_updated_data(self.device_data)
+
+    async def async_set_device_playlist(self, track_indices: list[int]) -> None:
+        """Write a playlist to the device via CHAR_PLAYBACK.
+
+        Writes dash-separated track indices (same format as read).
+        """
+        await self._ensure_connected()
+        if not self._client:
+            return
+        playlist_str = "-".join(str(i) for i in track_indices)
+        _LOGGER.info("Sandsara: setting device playlist: %s", playlist_str)
+        char = self._resolve_char(CHAR_PLAYBACK)
+        if char:
+            await self._client.write_gatt_char(
+                char, playlist_str.encode("ascii"), response=True
+            )
+            self._parse_playlist(playlist_str)
+            self.async_set_updated_data(self.device_data)
+
+    # ── Playlist Manager (HA-side storage) ──────────────────────────────
+
+    async def async_load_playlists(self) -> None:
+        """Load playlists from storage."""
+        if self._playlists_loaded:
+            return
+        data = await self._playlist_store.async_load()
+        if data and isinstance(data, dict):
+            self._playlists = {
+                k: v for k, v in data.get("playlists", {}).items()
+                if isinstance(v, list)
+            }
+            self.device_data.active_playlist_name = data.get("active")
+        self._playlists_loaded = True
+
+    async def _save_playlists(self) -> None:
+        """Save playlists to storage."""
+        await self._playlist_store.async_save({
+            "playlists": self._playlists,
+            "active": self.device_data.active_playlist_name,
+        })
+
+    @property
+    def playlists(self) -> dict[str, list[int]]:
+        """Return all playlists."""
+        return self._playlists
+
+    async def async_create_playlist(self, name: str, tracks: list[int]) -> None:
+        """Create a new playlist."""
+        await self.async_load_playlists()
+        self._playlists[name] = tracks
+        await self._save_playlists()
+        self.async_set_updated_data(self.device_data)
+
+    async def async_delete_playlist(self, name: str) -> None:
+        """Delete a playlist."""
+        await self.async_load_playlists()
+        self._playlists.pop(name, None)
+        if self.device_data.active_playlist_name == name:
+            self.device_data.active_playlist_name = None
+        await self._save_playlists()
+        self.async_set_updated_data(self.device_data)
+
+    async def async_add_to_playlist(self, name: str, track_index: int) -> None:
+        """Add a track to an existing playlist."""
+        await self.async_load_playlists()
+        if name not in self._playlists:
+            raise ValueError(f"Playlist '{name}' not found")
+        self._playlists[name].append(track_index)
+        await self._save_playlists()
+        self.async_set_updated_data(self.device_data)
+
+    async def async_remove_from_playlist(self, name: str, track_index: int) -> None:
+        """Remove a track from a playlist."""
+        await self.async_load_playlists()
+        if name not in self._playlists:
+            raise ValueError(f"Playlist '{name}' not found")
+        try:
+            self._playlists[name].remove(track_index)
+        except ValueError:
+            pass
+        await self._save_playlists()
+        self.async_set_updated_data(self.device_data)
+
+    async def async_play_playlist(self, name: str) -> None:
+        """Activate a playlist: write tracks to device and start playing."""
+        await self.async_load_playlists()
+        if name not in self._playlists:
+            raise ValueError(f"Playlist '{name}' not found")
+        tracks = self._playlists[name]
+        if not tracks:
+            raise ValueError(f"Playlist '{name}' is empty")
+        self.device_data.active_playlist_name = name
+        await self._save_playlists()
+        await self.async_set_device_playlist(tracks)
+        # Start playback
+        await self.async_play()
 
     async def async_shutdown(self) -> None:
         """Disconnect from device."""

@@ -26,7 +26,7 @@
   "services": {
     "upload_pattern": {
       "name": "Upload Pattern",
-      "description": "Upload a .bin pattern file to the Sandsara device via BLE. The file must exist on the HA server filesystem.",
+      "description": "Upload a .bin pattern file to the Sandsara device via BLE.",
       "fields": {
         "file_path": {
           "name": "File Path",
@@ -37,12 +37,102 @@
           "description": "Config entry ID of the Sandsara device (optional)."
         }
       }
+    },
+    "create_playlist": {
+      "name": "Create Playlist",
+      "description": "Create a new named playlist with a list of track indices.",
+      "fields": {
+        "name": {
+          "name": "Playlist Name",
+          "description": "Name for the playlist."
+        },
+        "tracks": {
+          "name": "Track Indices",
+          "description": "List of pattern track indices (0-99)."
+        },
+        "entry_id": {
+          "name": "Entry ID",
+          "description": "Config entry ID (optional)."
+        }
+      }
+    },
+    "delete_playlist": {
+      "name": "Delete Playlist",
+      "description": "Delete a saved playlist by name.",
+      "fields": {
+        "name": {
+          "name": "Playlist Name",
+          "description": "Name of the playlist to delete."
+        },
+        "entry_id": {
+          "name": "Entry ID",
+          "description": "Config entry ID (optional)."
+        }
+      }
+    },
+    "play_playlist": {
+      "name": "Play Playlist",
+      "description": "Activate a saved playlist on the Sandsara device and start playing.",
+      "fields": {
+        "name": {
+          "name": "Playlist Name",
+          "description": "Name of the playlist to play."
+        },
+        "entry_id": {
+          "name": "Entry ID",
+          "description": "Config entry ID (optional)."
+        }
+      }
+    },
+    "add_to_playlist": {
+      "name": "Add to Playlist",
+      "description": "Add a pattern to an existing playlist.",
+      "fields": {
+        "name": {
+          "name": "Playlist Name",
+          "description": "Name of the playlist."
+        },
+        "track_index": {
+          "name": "Track Index",
+          "description": "Pattern index to add (0-99)."
+        },
+        "entry_id": {
+          "name": "Entry ID",
+          "description": "Config entry ID (optional)."
+        }
+      }
+    },
+    "remove_from_playlist": {
+      "name": "Remove from Playlist",
+      "description": "Remove a pattern from a playlist.",
+      "fields": {
+        "name": {
+          "name": "Playlist Name",
+          "description": "Name of the playlist."
+        },
+        "track_index": {
+          "name": "Track Index",
+          "description": "Pattern index to remove (0-99)."
+        },
+        "entry_id": {
+          "name": "Entry ID",
+          "description": "Config entry ID (optional)."
+        }
+      }
     }
   },
   "entity": {
+    "number": {
+      "pause_between_patterns": {
+        "name": "Pause between patterns"
+      }
+    },
     "select": {
       "pattern": {
         "name": "Pattern"
+      },
+      "playlist": {
+        "name": "Playlist"
       }
     },
     "sensor": {
@@ -59,6 +149,9 @@
     "switch": {
       "shuffle": {
         "name": "Shuffle"
+      },
+      "spiral_before_pattern": {
+        "name": "Spiral before pattern"
       }
     }
   }

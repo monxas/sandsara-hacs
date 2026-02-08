@@ -26,6 +26,7 @@ async def async_setup_entry(
     async_add_entities([
         SandsaraBallSpeed(coordinator, entry),
         SandsaraLedSpeed(coordinator, entry),
+        SandsaraPauseBetweenPatterns(coordinator, entry),
     ])
 
 
@@ -99,3 +100,37 @@ class SandsaraLedSpeed(CoordinatorEntity[SandsaraCoordinator], NumberEntity):
     async def async_set_native_value(self, value: float) -> None:
         """Set LED animation speed."""
         await self.coordinator.async_set_led_speed(int(value))
+
+
+class SandsaraPauseBetweenPatterns(CoordinatorEntity[SandsaraCoordinator], NumberEntity):
+    """Pause duration between patterns (seconds)."""
+
+    _attr_has_entity_name = True
+    _attr_name = "Pause between patterns"
+    _attr_icon = "mdi:timer-sand"
+    _attr_native_min_value = 0
+    _attr_native_max_value = 300
+    _attr_native_step = 5
+    _attr_native_unit_of_measurement = "s"
+    _attr_mode = NumberMode.SLIDER
+
+    def __init__(
+        self, coordinator: SandsaraCoordinator, entry: ConfigEntry
+    ) -> None:
+        """Initialize."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{entry.unique_id}_pause_between_patterns"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, entry.unique_id or entry.entry_id)},
+        )
+
+    @property
+    def available(self) -> bool:
+        return self.coordinator.device_data.connected
+
+    @property
+    def native_value(self) -> float:
+        return self.coordinator.device_data.pause_between_patterns
+
+    async def async_set_native_value(self, value: float) -> None:
+        await self.coordinator.async_set_pause_between_patterns(int(value))
