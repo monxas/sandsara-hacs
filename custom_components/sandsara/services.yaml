@@ -1,0 +1,17 @@
+upload_pattern:
+  name: Upload Pattern
+  description: Upload a .bin pattern file to the Sandsara device via BLE.
+  fields:
+    file_path:
+      name: File Path
+      description: Full path to the .bin pattern file to upload.
+      required: true
+      example: "/config/sandsara/my_pattern.bin"
+      selector:
+        text:
+    entry_id:
+      name: Entry ID
+      description: Config entry ID of the Sandsara device (optional, uses first device if omitted).
+      required: false
+      selector:
+        text:

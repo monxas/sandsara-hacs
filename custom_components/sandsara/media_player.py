@@ -40,6 +40,7 @@ class SandsaraPlayer(CoordinatorEntity[SandsaraCoordinator], MediaPlayerEntity):
         MediaPlayerEntityFeature.PLAY
         | MediaPlayerEntityFeature.PAUSE
         | MediaPlayerEntityFeature.NEXT_TRACK
+        | MediaPlayerEntityFeature.PREVIOUS_TRACK
         | MediaPlayerEntityFeature.STOP
     )
 
@@ -86,3 +87,17 @@ class SandsaraPlayer(CoordinatorEntity[SandsaraCoordinator], MediaPlayerEntity):
     async def async_media_next_track(self) -> None:
         """Send next track command."""
         await self.coordinator.async_next_track()
+
+    async def async_media_previous_track(self) -> None:
+        """Send previous track command."""
+        await self.coordinator.async_previous_track()
+
+    @property
+    def media_title(self) -> str | None:
+        """Return current track name."""
+        return self.coordinator.device_data.current_track_name
+
+    @property
+    def media_track(self) -> int | None:
+        """Return current track index."""
+        return self.coordinator.device_data.current_track_index
