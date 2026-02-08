@@ -1,7 +1,7 @@
 {
   "domain": "sandsara",
   "name": "Sandsara",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "codeowners": [],
   "config_flow": true,
   "documentation": "https://github.com/monxas/sandsara-hacs",
