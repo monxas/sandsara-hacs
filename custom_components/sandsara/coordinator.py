@@ -660,11 +660,21 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
         assigned_name = ""
 
         try:
-            # Step 1: Enable notifications on File Flag
+            # Negotiate MTU for large chunks (app uses 512→255)
+            try:
+                if hasattr(self._client, '_backend') and hasattr(self._client._backend, 'exchange_mtu'):
+                    await self._client._backend.exchange_mtu(512)
+                    _LOGGER.debug("Sandsara: MTU exchange requested")
+                elif hasattr(self._client, 'mtu_size'):
+                    _LOGGER.debug("Sandsara: current MTU = %d", self._client.mtu_size)
+            except Exception as mtu_err:
+                _LOGGER.debug("Sandsara: MTU negotiation skipped: %s", mtu_err)
+
+            # Step 1: Clear event BEFORE enabling notifications to catch immediate 0x00
+            _flag_event.clear()
             await self._client.start_notify(CHAR_FILE_FLAG, _file_flag_handler)
 
             # Step 2: Wait for 0x00 = "ready"
-            _flag_event.clear()
             try:
                 await asyncio.wait_for(_flag_event.wait(), timeout=5.0)
             except asyncio.TimeoutError:
@@ -691,10 +701,12 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
                     "Sandsara: unexpected ack: %s", _flag_data.hex() if _flag_data else "empty"
                 )
 
-            # Step 5: Send chunks — 244 bytes each, wait for 0x02 ack on File Flag
-            with open(file_path, "rb") as f:
-                for chunk_num in range(total_chunks):
-                    chunk = f.read(FILE_CHUNK_SIZE)
+            # Step 5: Send chunks — wait for 0x02 ack on File Flag per chunk
+            file_data = await self.hass.async_add_executor_job(
+                lambda: open(file_path, "rb").read()
+            )
+            for chunk_num in range(total_chunks):
+                    chunk = file_data[chunk_num * FILE_CHUNK_SIZE:(chunk_num + 1) * FILE_CHUNK_SIZE]
                     if not chunk:
                         break
                     _flag_event.clear()
