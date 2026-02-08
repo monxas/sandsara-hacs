@@ -57,7 +57,8 @@ STATUS_SLEEPING = "4"
 STATUS_BUSY = "5"
 
 # File transfer
-FILE_CHUNK_SIZE = 250
+FILE_CHUNK_SIZE = 244  # Matches real app HCI capture (MTU 255, but app uses 244)
+FILE_TRANSFER_START_CMD = 0x6F  # Fixed "start upload" command (NOT chunk count!)
 
 # CHAR_DATETIME init blob offsets
 DT_INIT_NAME_START = 1

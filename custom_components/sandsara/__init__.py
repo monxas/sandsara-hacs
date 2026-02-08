@@ -30,6 +30,8 @@ PLATFORMS: list[Platform] = [
 SERVICE_UPLOAD_PATTERN = "upload_pattern"
 SERVICE_UPLOAD_SCHEMA = vol.Schema({
     vol.Required("file_path"): cv.string,
+    vol.Optional("name"): cv.string,
+    vol.Optional("add_to_playlist"): cv.string,
     vol.Optional("entry_id"): cv.string,
 })
 
@@ -108,9 +110,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     raise RuntimeError("No Sandsara device configured")
                 coord = coordinators[0]
 
-            _LOGGER.warning("Sandsara: upload_pattern service called with file_path=%s", file_path)
+            pattern_name = call.data.get("name")
+            add_to_playlist = call.data.get("add_to_playlist")
+            _LOGGER.warning(
+                "Sandsara: upload_pattern called file=%s name=%s playlist=%s",
+                file_path, pattern_name, add_to_playlist,
+            )
             try:
-                result = await coord.async_upload_pattern(file_path)
+                result = await coord.async_upload_pattern(
+                    file_path, name=pattern_name, add_to_playlist=add_to_playlist,
+                )
                 _LOGGER.warning("Sandsara: upload_pattern completed, result=%s", result)
             except Exception as err:
                 _LOGGER.error("Sandsara: upload_pattern FAILED: %s", err, exc_info=True)
