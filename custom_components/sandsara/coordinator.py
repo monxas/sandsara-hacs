@@ -28,6 +28,7 @@ from .const import (
     CHAR_FILE_DATA,
     CHAR_FILE_FLAG,
     CHAR_FILE_STATUS,
+    CHAR_FILE_UNKNOWN,
     CHAR_MODEL,
     CHAR_PLAYBACK,
     CHAR_SETTINGS,
@@ -628,6 +629,34 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
         file_size = os.path.getsize(file_path)
         _LOGGER.info("Sandsara: uploading pattern '%s' (%d bytes)", filename, file_size)
 
+        # Step 0: File service handshake (File Unknown: write 0x01 → expect 0xFE)
+        _LOGGER.info("Sandsara: file service handshake...")
+        _file_unknown_event = asyncio.Event()
+        _file_unknown_value = bytearray()
+
+        @callback
+        def _file_unknown_handler(sender: int, data: bytearray) -> None:
+            nonlocal _file_unknown_value
+            _LOGGER.debug("Sandsara: file unknown notify: %s", data.hex())
+            _file_unknown_value = data
+            _file_unknown_event.set()
+
+        try:
+            await self._client.start_notify(CHAR_FILE_UNKNOWN, _file_unknown_handler)
+            await asyncio.sleep(0.3)  # Wait for initial 0xFF ack
+            _file_unknown_event.clear()
+            await self._client.write_gatt_char(
+                CHAR_FILE_UNKNOWN, bytes([0x01]), response=True
+            )
+            try:
+                await asyncio.wait_for(_file_unknown_event.wait(), timeout=5.0)
+                _LOGGER.info("Sandsara: file service handshake response: %s", _file_unknown_value.hex())
+            except asyncio.TimeoutError:
+                _LOGGER.warning("Sandsara: file service handshake timeout (continuing anyway)")
+            await self._client.stop_notify(CHAR_FILE_UNKNOWN)
+        except Exception as err:
+            _LOGGER.warning("Sandsara: file service handshake failed: %s (continuing)", err)
+
         # Enable notifications on File Status (for "ok" and "done")
         try:
             await self._client.start_notify(
@@ -646,6 +675,26 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
             _LOGGER.warning("Sandsara: failed to enable File Data notify: %s", err)
             await self._client.stop_notify(CHAR_FILE_STATUS)
             raise
+
+        # Enable notifications on File Flag too (might receive responses here)
+        _file_flag_event = asyncio.Event()
+        _file_flag_value = ""
+
+        @callback
+        def _file_flag_handler(sender: int, data: bytearray) -> None:
+            nonlocal _file_flag_value
+            text = data.decode("ascii", errors="replace").strip()
+            _LOGGER.info("Sandsara: file FLAG notify: %s (hex: %s)", text, data.hex())
+            _file_flag_value = text
+            _file_flag_event.set()
+            # Also set the status event in case "ok"/"done" comes here
+            self._file_status_value = text
+            self._file_status_event.set()
+
+        try:
+            await self._client.start_notify(CHAR_FILE_FLAG, _file_flag_handler)
+        except Exception as err:
+            _LOGGER.debug("Sandsara: could not enable File Flag notify: %s", err)
 
         try:
             # Step 1: Write filename to File Flag
@@ -703,7 +752,7 @@ class SandsaraCoordinator(DataUpdateCoordinator[SandsaraData]):
                 _LOGGER.debug("Sandsara: failed to refresh file array after upload: %s", err)
         finally:
             # Disable notifications
-            for char in (CHAR_FILE_STATUS, CHAR_FILE_DATA):
+            for char in (CHAR_FILE_STATUS, CHAR_FILE_DATA, CHAR_FILE_FLAG):
                 try:
                     await self._client.stop_notify(char)
                 except Exception:
