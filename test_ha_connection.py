@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Test Home Assistant API connection"""
 
+import os
 import requests
 import json
 
 HA_URL = "http://192.168.0.171:8123"
-HA_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI2NWFlMzExMzM3ZWY0ZDQwYmI2MTIyZjJmOWRiNjA4NSIsImlhdCI6MTc2OTQ3NDc0NSwiZXhwIjoyMDg0ODM0NzQ1fQ.wv2S2vt870VgGqEGGMeSyhd3LKGUxf4oGL5-XGshy3U"
+HA_TOKEN = os.environ.get("HASS_TOKEN") or exit("falta HASS_TOKEN en el entorno")
 
 headers = {
     "Authorization": f"Bearer {HA_TOKEN}",
