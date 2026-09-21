@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandsara Pattern Visualizer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+            display: flex;
+        }
+        .sidebar {
+            width: 300px;
+            background: #16213e;
+            padding: 20px;
+            overflow-y: auto;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+        }
+        .sidebar h1 {
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            color: #e94560;
+        }
+        .pattern-list {
+            list-style: none;
+        }
+        .pattern-list li {
+            padding: 10px 12px;
+            margin: 4px 0;
+            background: #1a1a2e;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85em;
+        }
+        .pattern-list li:hover {
+            background: #0f3460;
+        }
+        .pattern-list li.active {
+            background: #e94560;
+        }
+        .pattern-list li .points {
+            color: #888;
+            font-size: 0.8em;
+        }
+        .main {
+            margin-left: 300px;
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .canvas-container {
+            background: #0f0f23;
+            border-radius: 50%;
+            padding: 20px;
+            box-shadow: 0 0 40px rgba(233, 69, 96, 0.2);
+            margin: 20px 0;
+        }
+        #canvas {
+            display: block;
+            border-radius: 50%;
+            background: radial-gradient(circle, #2a2a4a 0%, #1a1a2e 100%);
+        }
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .control-group {
+            background: #16213e;
+            padding: 15px 20px;
+            border-radius: 8px;
+        }
+        .control-group label {
+            display: block;
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 5px;
+        }
+        .control-group input[type="range"] {
+            width: 150px;
+        }
+        .control-group input[type="number"] {
+            width: 80px;
+            padding: 5px;
+            border: 1px solid #333;
+            background: #1a1a2e;
+            color: #eee;
+            border-radius: 4px;
+        }
+        .control-group select {
+            padding: 5px 10px;
+            border: 1px solid #333;
+            background: #1a1a2e;
+            color: #eee;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button {
+            padding: 10px 20px;
+            background: #e94560;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+        button:hover {
+            background: #ff6b6b;
+        }
+        button:disabled {
+            background: #444;
+            cursor: not-allowed;
+        }
+        .info {
+            background: #16213e;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            max-width: 600px;
+            text-align: center;
+        }
+        .info strong {
+            color: #e94560;
+        }
+        .playback-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        #progress {
+            width: 200px;
+        }
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+            font-size: 0.8em;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .dot-start { background: #00ff00; }
+        .dot-end { background: #ff0000; }
+        .dot-ball { background: #ffcc00; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h1>🏖️ Sandsara Patterns</h1>
+        <ul class="pattern-list" id="patternList">
+            <li>Loading patterns...</li>
+        </ul>
+    </div>
+
+    <div class="main">
+        <div class="canvas-container">
+            <canvas id="canvas" width="600" height="600"></canvas>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Line Width</label>
+                <input type="range" id="lineWidth" min="0.5" max="5" step="0.5" value="1">
+            </div>
+            <div class="control-group">
+                <label>Opacity</label>
+                <input type="range" id="opacity" min="0.1" max="1" step="0.1" value="0.8">
+            </div>
+            <div class="control-group">
+                <label>Show Points</label>
+                <input type="range" id="pointsVisible" min="0" max="100" value="100">
+                <span id="pointsLabel">100%</span>
+            </div>
+            <div class="control-group">
+                <label>Sort Mode</label>
+                <select id="sortMode">
+                    <option value="original" selected>Original file order</option>
+                    <option value="rho_theta">By rho → theta</option>
+                    <option value="theta_rho">By theta → rho</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="controls playback-controls">
+            <button id="playBtn">▶ Animate</button>
+            <button id="resetBtn">⟲ Reset</button>
+            <div class="control-group">
+                <label>Speed</label>
+                <input type="range" id="speed" min="1" max="100" value="20">
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item"><span class="legend-dot dot-start"></span> Start</div>
+            <div class="legend-item"><span class="legend-dot dot-end"></span> End</div>
+            <div class="legend-item"><span class="legend-dot dot-ball"></span> Ball position</div>
+        </div>
+
+        <div class="info" id="info">
+            Select a pattern from the sidebar to visualize it.
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const patternList = document.getElementById('patternList');
+        const info = document.getElementById('info');
+
+        let currentPattern = null;
+        let animationId = null;
+        let animationFrame = 0;
+        let isPlaying = false;
+
+        // Load pattern list
+        async function loadPatterns() {
+            try {
+                const res = await fetch('/api/patterns');
+                const patterns = await res.json();
+                patternList.innerHTML = '';
+
+                // Group by type
+                const svgPatterns = patterns.filter(p => p.name.startsWith('svg-'));
+                const examplePatterns = patterns.filter(p => p.name.startsWith('example'));
+                const mysteryPatterns = patterns.filter(p => p.name.startsWith('mystery'));
+                const testPatterns = patterns.filter(p => p.name.startsWith('testing'));
+                const trackPatterns = patterns.filter(p => p.name.startsWith('Sandsara'));
+
+                function addSection(title, items) {
+                    if (items.length > 0) {
+                        const header = document.createElement('li');
+                        header.style.background = 'transparent';
+                        header.style.color = '#e94560';
+                        header.style.cursor = 'default';
+                        header.style.marginTop = patternList.children.length > 0 ? '15px' : '0';
+                        header.textContent = `— ${title} —`;
+                        patternList.appendChild(header);
+                        items.forEach(p => addPatternItem(p));
+                    }
+                }
+
+                addSection('SVG Imports (newest first)', svgPatterns.reverse());
+                addSection('Example Patterns', examplePatterns);
+                addSection('Mystery Patterns', mysteryPatterns);
+                addSection('Test Patterns', testPatterns);
+                addSection('Track Patterns', trackPatterns);
+            } catch (err) {
+                patternList.innerHTML = '<li>Error loading patterns</li>';
+                console.error(err);
+            }
+        }
+
+        function addPatternItem(pattern) {
+            const li = document.createElement('li');
+            li.innerHTML = `${pattern.name}<br><span class="points">${pattern.points.toLocaleString()} points</span>`;
+            li.onclick = () => loadPattern(pattern.name, li);
+            patternList.appendChild(li);
+        }
+
+        let currentPatternName = null;
+
+        async function loadPattern(name, element) {
+            // Update active state
+            document.querySelectorAll('.pattern-list li').forEach(li => li.classList.remove('active'));
+            if (element) element.classList.add('active');
+
+            // Stop any animation
+            stopAnimation();
+            currentPatternName = name;
+
+            info.innerHTML = 'Loading...';
+
+            try {
+                const sortMode = document.getElementById('sortMode').value;
+                const res = await fetch(`/api/pattern/${encodeURIComponent(name)}?sort=${sortMode}`);
+                currentPattern = await res.json();
+
+                info.innerHTML = `
+                    <strong>${currentPattern.name}</strong><br>
+                    ${currentPattern.count.toLocaleString()} points | Sort: ${currentPattern.sort_mode}
+                `;
+
+                drawPattern();
+            } catch (err) {
+                info.innerHTML = 'Error loading pattern';
+                console.error(err);
+            }
+        }
+
+        function drawPattern(maxPoints = null) {
+            if (!currentPattern) return;
+
+            const points = currentPattern.points;
+            const lineWidth = parseFloat(document.getElementById('lineWidth').value);
+            const opacity = parseFloat(document.getElementById('opacity').value);
+            const pointsPercent = parseInt(document.getElementById('pointsVisible').value);
+
+            // Calculate how many points to show
+            let numPoints = maxPoints !== null ? maxPoints : Math.floor(points.length * pointsPercent / 100);
+            numPoints = Math.max(2, Math.min(numPoints, points.length));
+
+            // Clear canvas
+            ctx.fillStyle = '#1a1a2e';
+            ctx.beginPath();
+            ctx.arc(300, 300, 290, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw sand table border
+            ctx.strokeStyle = '#3a3a5a';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(300, 300, 280, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw center dot
+            ctx.fillStyle = '#3a3a5a';
+            ctx.beginPath();
+            ctx.arc(300, 300, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (numPoints < 2) return;
+
+            // Scale factor (radius maps to ~270px to stay within circle)
+            const scale = 270;
+
+            // Draw path
+            ctx.strokeStyle = `rgba(233, 69, 96, ${opacity})`;
+            ctx.lineWidth = lineWidth;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+
+            for (let i = 0; i < numPoints; i++) {
+                const p = points[i];
+                const x = 300 + p.x * scale;
+                const y = 300 - p.y * scale;  // Flip Y for canvas coords
+
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
+
+            // Draw start point (green)
+            const start = points[0];
+            ctx.fillStyle = '#00ff00';
+            ctx.beginPath();
+            ctx.arc(300 + start.x * scale, 300 - start.y * scale, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw end/current point
+            const end = points[numPoints - 1];
+            ctx.fillStyle = maxPoints !== null ? '#ffcc00' : '#ff0000';
+            ctx.beginPath();
+            ctx.arc(300 + end.x * scale, 300 - end.y * scale, 6, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function animate() {
+            if (!currentPattern || !isPlaying) return;
+
+            const speed = parseInt(document.getElementById('speed').value) / 5;
+            animationFrame += speed;
+
+            if (animationFrame >= currentPattern.count) {
+                animationFrame = currentPattern.count;
+                stopAnimation();
+            }
+
+            drawPattern(animationFrame);
+
+            if (isPlaying) {
+                animationId = requestAnimationFrame(animate);
+            }
+        }
+
+        function startAnimation() {
+            if (!currentPattern) return;
+            isPlaying = true;
+            document.getElementById('playBtn').textContent = '⏸ Pause';
+            animate();
+        }
+
+        function stopAnimation() {
+            isPlaying = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            document.getElementById('playBtn').textContent = '▶ Animate';
+        }
+
+        function resetAnimation() {
+            stopAnimation();
+            animationFrame = 0;
+            drawPattern();
+        }
+
+        // Event listeners
+        document.getElementById('playBtn').onclick = () => {
+            if (isPlaying) {
+                stopAnimation();
+            } else {
+                if (animationFrame >= (currentPattern?.count || 0)) {
+                    animationFrame = 0;
+                }
+                startAnimation();
+            }
+        };
+
+        document.getElementById('resetBtn').onclick = resetAnimation;
+
+        document.getElementById('lineWidth').oninput = () => {
+            if (!isPlaying) drawPattern(animationFrame || null);
+        };
+
+        document.getElementById('opacity').oninput = () => {
+            if (!isPlaying) drawPattern(animationFrame || null);
+        };
+
+        document.getElementById('pointsVisible').oninput = (e) => {
+            document.getElementById('pointsLabel').textContent = e.target.value + '%';
+            if (!isPlaying) {
+                animationFrame = 0;
+                drawPattern();
+            }
+        };
+
+        document.getElementById('sortMode').onchange = () => {
+            if (currentPatternName) {
+                loadPattern(currentPatternName, document.querySelector('.pattern-list li.active'));
+            }
+        };
+
+        // Initial load
+        loadPatterns();
+
+        // Draw initial empty circle
+        ctx.fillStyle = '#1a1a2e';
+        ctx.beginPath();
+        ctx.arc(300, 300, 290, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#3a3a5a';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(300, 300, 280, 0, Math.PI * 2);
+        ctx.stroke();
+    </script>
+</body>
+</html>
